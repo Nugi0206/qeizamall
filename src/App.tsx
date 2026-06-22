@@ -87,6 +87,7 @@ export default function App() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [stockLogs, setStockLogs] = useState<StockLog[]>([]);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
 
   // Store Template Style Mode
   const [storeTemplate, setStoreTemplate] = useState<"tokopedia" | "cream" | "midnight">(() => {
@@ -135,7 +136,7 @@ export default function App() {
       subtitle: "Katalog Terlengkap Jaminan Original Bergaransi Resmi",
       tag: "NEW INVENTORIES ARRIVAL",
       img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=80",
-      cta: "Dapatkan Promonya"
+      cta: "Diskon Menarik"
     }
   ];
 
@@ -165,9 +166,211 @@ export default function App() {
       const slRes = await fetch("/api/stock-logs");
       const logsData = await slRes.json();
       setStockLogs(logsData);
-
+      
+      setIsOfflineMode(false);
     } catch (err) {
-      console.error("Error synchronizing backend databases:", err);
+      console.warn("Express backend API server offline/unreachable. Switching to robust Client Storage / Offline Demo Mode.", err);
+      setIsOfflineMode(true);
+
+      // Load products
+      const savedProducts = localStorage.getItem("qeiza_fallback_products");
+      if (savedProducts) {
+        try { setProducts(JSON.parse(savedProducts)); } catch { localStorage.removeItem("qeiza_fallback_products"); }
+      }
+      if (!savedProducts || !localStorage.getItem("qeiza_fallback_products")) {
+        const defaultProds = [
+          {
+            id: "prod-1",
+            name: "iPhone 15 Pro Max 256GB Titanium",
+            sku: "QZ-IPH-15PM-256",
+            barcode: "8806090123456",
+            description: "Nikmati kecanggihan iPhone terbaru dengan material Titanium tahan lama, chipset A17 Pro super bertenaga, sistem kamera canggih dengan 5x optical zoom, dan konektivitas USB-C super cepat.",
+            costPrice: 18500000,
+            price: 21999000,
+            promoPrice: 20499000,
+            weight: 221,
+            stock: 14,
+            minStock: 3,
+            images: [
+              "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=800&q=80"
+            ],
+            colors: ["Titanium Alami", "Titanium Hitam"],
+            sizes: ["256GB"],
+            discount: 7,
+            isActive: true,
+            label: "bestseller",
+            category: "Elektronik",
+            subCategory: "Smartphone",
+            videoUrl: null,
+            adVideoUrl: null
+          },
+          {
+            id: "prod-2",
+            name: "Kemeja Oversized Linen Premium",
+            sku: "QZ-FSH-LNN-WHT",
+            barcode: "8991234567891",
+            description: "Kemeja oversized bahan linen premium. Sangat adem, menyerap keringat, dan cocok untuk gaya kasual.",
+            costPrice: 110000,
+            price: 249000,
+            promoPrice: 189000,
+            weight: 250,
+            stock: 43,
+            minStock: 8,
+            images: [
+              "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80"
+            ],
+            colors: ["Off-White", "Sage Green"],
+            sizes: ["M", "L"],
+            discount: 24,
+            isActive: true,
+            label: "baru",
+            category: "Fashion",
+            subCategory: "Pakaian Pria",
+            videoUrl: null,
+            adVideoUrl: null
+          }
+        ];
+        setProducts(defaultProds);
+        localStorage.setItem("qeiza_fallback_products", JSON.stringify(defaultProds));
+      }
+
+      // Load settings
+      const savedSettings = localStorage.getItem("qeiza_fallback_settings");
+      if (savedSettings) {
+        try { setSettings(JSON.parse(savedSettings)); } catch { localStorage.removeItem("qeiza_fallback_settings"); }
+      }
+      if (!savedSettings || !localStorage.getItem("qeiza_fallback_settings")) {
+        const defaultSettings = {
+          logoUrl: "",
+          heroBanners: [
+            "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=80",
+            "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1600&q=80"
+          ],
+          aboutText: "Qeiza Mall menyediakan berbagai macam kebutuhan gaya hidup masa kini dengan kualitas terbaik.",
+          warehouseAddress: {
+            street: "Jl. Raya Boulevard Barat No.18",
+            kelurahan: "Kelapa Gading Barat",
+            kecamatan: "Kelapa Gading",
+            kabupaten: "Jakarta Utara",
+            provinsi: "DKI Jakarta",
+            postalCode: "14240"
+          },
+          activeCouriers: ["JNE", "J&T", "SiCepat"],
+          activePayments: {
+            cod: true,
+            transferBank: {
+              isActive: true,
+              accounts: [
+                {
+                  bankName: "BCA",
+                  accountNo: "8045519223",
+                  holderName: "Qeiza Official Store"
+                }
+              ]
+            },
+            qris: {
+              isActive: true,
+              qrisUrl: "https://images.unsplash.com/photo-1682337199105-0eaf38ae85fc?auto=format&fit=crop&w=500&q=80"
+            }
+          },
+          seoTitle: "Qeiza Mall - Belanja Mudah, Cepat, dan Terpercaya",
+          seoDescription: "Pusat perbelanjaan online terpercaya Qeiza Mall.",
+          contactPhone: "081234567890",
+          contactEmail: "cs@qeizamall.com"
+        };
+        setSettings(defaultSettings);
+        localStorage.setItem("qeiza_fallback_settings", JSON.stringify(defaultSettings));
+      }
+
+      // Load orders
+      const savedOrders = localStorage.getItem("qeiza_fallback_orders");
+      if (savedOrders) {
+        try { setOrders(JSON.parse(savedOrders)); } catch { localStorage.removeItem("qeiza_fallback_orders"); }
+      }
+      if (!savedOrders || !localStorage.getItem("qeiza_fallback_orders")) {
+        const defaultOrders = [
+          {
+            id: "ord-1",
+            invoice: "INV-20260622-0001",
+            createdAt: "2026-06-22T15:40:02.195Z",
+            customerName: "Imron Rosyadi",
+            customerPhone: "081234567890",
+            address: {
+              street: "Jl. Margonda Raya No. 4",
+              kelurahan: "Pondok Cina",
+              kecamatan: "Beji",
+              kabupaten: "Depok",
+              provinsi: "Jawa Barat",
+              postalCode: "16424"
+            },
+            items: [
+              {
+                productId: "prod-2",
+                productName: "Kemeja Oversized Linen Premium",
+                price: 189000,
+                costPrice: 110000,
+                quantity: 1,
+                color: "Sage Green",
+                size: "L"
+              }
+            ],
+            shippingCourier: "JNE",
+            shippingCost: 15000,
+            shippingOption: "REG",
+            estimatedDays: "2-3 Hari",
+            paymentMethod: "Transfer Bank" as any,
+            paymentBank: "BCA",
+            paymentStatus: "unpaid" as any,
+            status: "pending" as any,
+            totalWeight: 250,
+            subtotal: 189000,
+            discountAmount: 0,
+            total: 204000,
+            notes: "Tolong dikemas rapi ya kak",
+            trackingNo: null,
+            voucherCode: null
+          }
+        ];
+        setOrders(defaultOrders);
+        localStorage.setItem("qeiza_fallback_orders", JSON.stringify(defaultOrders));
+      }
+
+      // Load promos
+      const savedPromos = localStorage.getItem("qeiza_fallback_promos");
+      if (savedPromos) {
+        try { setPromos(JSON.parse(savedPromos)); } catch { localStorage.removeItem("qeiza_fallback_promos"); }
+      }
+      if (!savedPromos || !localStorage.getItem("qeiza_fallback_promos")) {
+        const defaultPromos = [
+          {
+            id: "prm-1",
+            code: "PROMOINDONESIA",
+            type: "percentage" as any,
+            value: 10,
+            minPurchase: 150000,
+            isActive: true,
+            description: "Diskon 10% dengan minimal transaksi Rp 150.000"
+          }
+        ];
+        setPromos(defaultPromos);
+        localStorage.setItem("qeiza_fallback_promos", JSON.stringify(defaultPromos));
+      }
+
+      // Load blog posts
+      setBlogPosts([
+        {
+          id: "blog-1",
+          title: "Cara Memilih Ukuran Pakaian Online yang Pas",
+          content: "Pastikan Anda mengukur lingkar dada dan panjang baju secara seksama sebelum checkout.",
+          imageUrl: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80",
+          slug: "pilih-ukuran-pakaian-online",
+          createdAt: "2026-06-22T12:00:00.000Z"
+        }
+      ]);
+
+      // Load stock logs
+      setStockLogs([]);
+
     } finally {
       setLoading(false);
     }
@@ -243,20 +446,39 @@ export default function App() {
     let order = orderPayload;
 
     try {
-      // If orderPayload does NOT have an invoice, it's a raw checkout payload, we need to POST it.
-      if (!orderPayload.invoice) {
-        const res = await fetch("/api/orders", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(orderPayload)
-        });
-        if (res.ok) {
-          const orderRes = await res.json();
-          order = orderRes.order;
-        } else {
-          const errMsg = await res.text();
-          alert(`Gagal membuat pesanan: ${errMsg}`);
-          return;
+      if (isOfflineMode) {
+        const mockInvoice = "INV-" + new Date().toISOString().slice(0, 10).replace(/-/g, "") + "-" + Math.floor(1000 + Math.random() * 9000);
+        const created: Order = {
+          ...orderPayload,
+          id: "ord-" + Date.now(),
+          invoice: mockInvoice,
+          createdAt: new Date().toISOString(),
+          paymentStatus: "unpaid",
+          status: "pending",
+          trackingNo: null,
+          trackingImage: null,
+          paymentProof: null
+        };
+        const nextOrders = [...orders, created];
+        setOrders(nextOrders);
+        localStorage.setItem("qeiza_fallback_orders", JSON.stringify(nextOrders));
+        order = created;
+      } else {
+        // If orderPayload does NOT have an invoice, it's a raw checkout payload, we need to POST it.
+        if (!orderPayload.invoice) {
+          const res = await fetch("/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(orderPayload)
+          });
+          if (res.ok) {
+            const orderRes = await res.json();
+            order = orderRes.order;
+          } else {
+            const errMsg = await res.text();
+            alert(`Gagal membuat pesanan: ${errMsg}`);
+            return;
+          }
         }
       }
 
@@ -264,7 +486,9 @@ export default function App() {
       if (order && order.invoice) {
         setCart([]); // Clear shopping bag
         setIsCartOpen(false);
-        fetchAllData(); // refresh order indexes
+        if (!isOfflineMode) {
+          fetchAllData(); // refresh order indexes
+        }
 
         // Show a nice feedback alert and then redirect
         alert(`Pesanan Berhasil Dibuat!\nNo. Invoice Anda: ${order.invoice}\n\nSistem akan mengarahkan Anda ke WhatsApp untuk memproses pesanan langsung dengan layanan pelanggan Qeiza Mall.`);
@@ -308,6 +532,12 @@ export default function App() {
 
   // ERP admin update transitions state
   const handleUpdateOrderStatus = async (orderId: string, updates: Partial<Order>) => {
+    if (isOfflineMode) {
+      const next = orders.map(o => o.id === orderId ? { ...o, ...updates } : o);
+      setOrders(next);
+      localStorage.setItem("qeiza_fallback_orders", JSON.stringify(next));
+      return;
+    }
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: "PUT",
@@ -323,6 +553,12 @@ export default function App() {
   };
 
   const handleDeleteOrder = async (orderId: string) => {
+    if (isOfflineMode) {
+      const next = orders.filter(o => o.id !== orderId);
+      setOrders(next);
+      localStorage.setItem("qeiza_fallback_orders", JSON.stringify(next));
+      return true;
+    }
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: "DELETE"
@@ -339,6 +575,17 @@ export default function App() {
   };
 
   const handleAddProduct = async (productData: any) => {
+    if (isOfflineMode) {
+      const createdItem = {
+        ...productData,
+        id: "prod-" + Date.now(),
+        discount: productData.promoPrice ? Math.round(((productData.price - productData.promoPrice) / productData.price) * 100) : 0
+      };
+      const next = [...products, createdItem];
+      setProducts(next);
+      localStorage.setItem("qeiza_fallback_products", JSON.stringify(next));
+      return;
+    }
     try {
       const res = await fetch("/api/products", {
         method: "POST",
@@ -352,6 +599,19 @@ export default function App() {
   };
 
   const handleUpdateProduct = async (prodId: string, updates: any) => {
+    if (isOfflineMode) {
+      const next = products.map(p => {
+        if (p.id === prodId) {
+          const merged = { ...p, ...updates };
+          merged.discount = merged.promoPrice ? Math.round(((merged.price - merged.promoPrice) / merged.price) * 100) : 0;
+          return merged;
+        }
+        return p;
+      });
+      setProducts(next);
+      localStorage.setItem("qeiza_fallback_products", JSON.stringify(next));
+      return;
+    }
     try {
       const res = await fetch(`/api/products/${prodId}`, {
         method: "PUT",
@@ -365,6 +625,12 @@ export default function App() {
   };
 
   const handleDeleteProduct = async (prodId: string) => {
+    if (isOfflineMode) {
+      const next = products.filter(p => p.id !== prodId);
+      setProducts(next);
+      localStorage.setItem("qeiza_fallback_products", JSON.stringify(next));
+      return;
+    }
     try {
       const res = await fetch(`/api/products/${prodId}`, {
         method: "DELETE"
@@ -376,6 +642,16 @@ export default function App() {
   };
 
   const handleAddPromo = async (promoData: any) => {
+    if (isOfflineMode) {
+      const createdItem = {
+        ...promoData,
+        id: "prm-" + Date.now()
+      };
+      const next = [...promos, createdItem];
+      setPromos(next);
+      localStorage.setItem("qeiza_fallback_promos", JSON.stringify(next));
+      return;
+    }
     try {
       const res = await fetch("/api/promos", {
         method: "POST",
@@ -389,6 +665,12 @@ export default function App() {
   };
 
   const handleDeletePromo = async (promoId: string) => {
+    if (isOfflineMode) {
+      const next = promos.filter(p => p.id !== promoId);
+      setPromos(next);
+      localStorage.setItem("qeiza_fallback_promos", JSON.stringify(next));
+      return;
+    }
     try {
       const res = await fetch(`/api/promos/${promoId}`, {
         method: "DELETE"
@@ -400,6 +682,14 @@ export default function App() {
   };
 
   const handleUpdateSettings = async (updates: Partial<Settings>) => {
+    if (isOfflineMode) {
+      if (settings) {
+        const next = { ...settings, ...updates };
+        setSettings(next);
+        localStorage.setItem("qeiza_fallback_settings", JSON.stringify(next));
+      }
+      return;
+    }
     try {
       const res = await fetch("/api/settings", {
         method: "PUT",
@@ -445,31 +735,39 @@ export default function App() {
   // RENDER SELLER ADMIN DESKTOP ERP IF VIEW MODE IS SET TO ADMIN
   if (viewMode === "admin") {
     return (
-      <AdminDashboard 
-        products={products}
-        orders={orders}
-        stockLogs={stockLogs}
-        promos={promos}
-        settings={settings}
-        onRefreshData={fetchAllData}
-        onUpdateOrderStatus={handleUpdateOrderStatus}
-        onDeleteOrder={handleDeleteOrder}
-        onAddProduct={handleAddProduct}
-        onUpdateProduct={handleUpdateProduct}
-        onDeleteProduct={handleDeleteProduct}
-        onAddPromo={handleAddPromo}
-        onDeletePromo={handleDeletePromo}
-        onUpdateSettings={handleUpdateSettings}
-        onExitAdmin={() => {
-          setViewMode("buyer");
-          if (typeof window !== "undefined") {
-            const url = new URL(window.location.href);
-            url.searchParams.delete("page");
-            url.searchParams.delete("admin");
-            window.history.pushState({}, "", url.toString());
-          }
-        }}
-      />
+      <div className="flex flex-col min-h-screen">
+        {isOfflineMode && (
+          <div className="bg-amber-500 text-white text-xs font-bold px-4 py-2.5 text-center flex items-center justify-center gap-1.5 z-50 shadow-sm leading-normal">
+            <span>⚠️</span>
+            <span><strong>Mode Demo Offline Aktif</strong>: Server API Express tidak terdeteksi (aplikasi berjalan serverless/static di hosting ini). Semua data disimpan di peramban Anda (localStorage).</span>
+          </div>
+        )}
+        <AdminDashboard 
+          products={products}
+          orders={orders}
+          stockLogs={stockLogs}
+          promos={promos}
+          settings={settings}
+          onRefreshData={fetchAllData}
+          onUpdateOrderStatus={handleUpdateOrderStatus}
+          onDeleteOrder={handleDeleteOrder}
+          onAddProduct={handleAddProduct}
+          onUpdateProduct={handleUpdateProduct}
+          onDeleteProduct={handleDeleteProduct}
+          onAddPromo={handleAddPromo}
+          onDeletePromo={handleDeletePromo}
+          onUpdateSettings={handleUpdateSettings}
+          onExitAdmin={() => {
+            setViewMode("buyer");
+            if (typeof window !== "undefined") {
+              const url = new URL(window.location.href);
+              url.searchParams.delete("page");
+              url.searchParams.delete("admin");
+              window.history.pushState({}, "", url.toString());
+            }
+          }}
+        />
+      </div>
     );
   }
 
@@ -477,6 +775,13 @@ export default function App() {
 
   return (
     <div className={`min-h-screen ${st.bg} ${st.fontClass} ${st.textPrimary} transition-all duration-300 scroll-smooth leading-normal relative select-none`}>
+      
+      {isOfflineMode && (
+        <div className="bg-amber-500 text-white text-xs font-bold px-4 py-2.5 text-center flex items-center justify-center gap-1.5 z-50 relative shadow-sm leading-normal">
+          <span>⚠️</span>
+          <span><strong>Mode Demo Offline Aktif</strong>: Gagal terhubung ke API Server (berjalan serverless/static di hosting ini). Transaksi Anda disimpan lokal di peramban ini.</span>
+        </div>
+      )}
       
       {/* 0. TOPMOST ANNOUNCEMENT BAR */}
       <div className="bg-zinc-900 text-zinc-300 border-b border-zinc-800 text-[10px] py-2 px-4 hidden lg:block select-none tracking-widest font-medium uppercase text-center">
