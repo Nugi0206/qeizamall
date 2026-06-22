@@ -1,0 +1,6 @@
+{
+  "name": "Qeiza Mall",
+  "description": "Profesional Single-Seller E-Commerce dengan Dashboard ERP Lengkap, Laba Rugi Otomatis, Manajemen Stok, dan Checkout WhatsApp/Sistem Premium.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
