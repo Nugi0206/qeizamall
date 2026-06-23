@@ -812,33 +812,33 @@ app.post("/api/shipping/rates", (req, res) => {
   // Simulated postage rates based on courier
   const baseRates: Record<string, { serviceName: string, multiplier: number, days: string }[]> = {
     "JNE": [
-      { serviceName: "JNE OKE (Ongkos Kirim Ekonomis)", multiplier: 22, days: "3-5 Hari" },
-      { serviceName: "JNE REG (Reguler)", multiplier: 30, days: "2-3 Hari" },
-      { serviceName: "JNE YES (Yakin Esok Sampai)", multiplier: 50, days: "1 Hari" }
+      { serviceName: "JNE OKE (Ongkos Kirim Ekonomis)", multiplier: 9, days: "3-5 Hari" },
+      { serviceName: "JNE REG (Reguler)", multiplier: 12, days: "2-3 Hari" },
+      { serviceName: "JNE YES (Yakin Esok Sampai)", multiplier: 22, days: "1 Hari" }
     ],
     "J&T": [
-      { serviceName: "J&T EZ (Ekspres Reguler)", multiplier: 28, days: "2-3 Hari" },
-      { serviceName: "J&T Super (Kilat)", multiplier: 45, days: "1-2 Hari" }
+      { serviceName: "J&T EZ (Ekspres Reguler)", multiplier: 11, days: "2-3 Hari" },
+      { serviceName: "J&T Super (Kilat)", multiplier: 19, days: "1-2 Hari" }
     ],
     "SiCepat": [
-      { serviceName: "SiCepat SIUNTUNG", multiplier: 25, days: "2-3 Hari" },
-      { serviceName: "SiCepat GOKIL (Kargo)", multiplier: 15, days: "4-7 Hari" },
-      { serviceName: "SiCepat BEST (Besok Sampai)", multiplier: 48, days: "1 Hari" }
+      { serviceName: "SiCepat SIUNTUNG", multiplier: 10, days: "2-3 Hari" },
+      { serviceName: "SiCepat GOKIL (Kargo)", multiplier: 6, days: "4-7 Hari" },
+      { serviceName: "SiCepat BEST (Besok Sampai)", multiplier: 18, days: "1 Hari" }
     ],
     "AnterAja": [
-      { serviceName: "AnterAja Regular", multiplier: 24, days: "2-3 Hari" },
-      { serviceName: "AnterAja NextDay", multiplier: 40, days: "1 Hari" }
+      { serviceName: "AnterAja Regular", multiplier: 10, days: "2-3 Hari" },
+      { serviceName: "AnterAja NextDay", multiplier: 18, days: "1 Hari" }
     ],
     "Ninja Express": [
-      { serviceName: "Ninja Standard", multiplier: 26, days: "2-4 Hari" }
+      { serviceName: "Ninja Standard", multiplier: 11, days: "2-4 Hari" }
     ],
     "Pos Indonesia": [
-      { serviceName: "Pos Kilat Khusus", multiplier: 20, days: "2-5 Hari" },
-      { serviceName: "Pos Nextday", multiplier: 42, days: "1-2 Hari" }
+      { serviceName: "Pos Kilat Khusus", multiplier: 8, days: "2-5 Hari" },
+      { serviceName: "Pos Nextday", multiplier: 17, days: "1-2 Hari" }
     ],
     "TIKI": [
-      { serviceName: "TIKI REG (Reguler)", multiplier: 29, days: "2-3 Hari" },
-      { serviceName: "TIKI ONS (Over Night Service)", multiplier: 49, days: "1 Hari" }
+      { serviceName: "TIKI REG (Reguler)", multiplier: 11, days: "2-3 Hari" },
+      { serviceName: "TIKI ONS (Over Night Service)", multiplier: 19, days: "1 Hari" }
     ]
   };
 

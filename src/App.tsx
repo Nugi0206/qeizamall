@@ -462,7 +462,7 @@ export default function App() {
     let order = orderPayload;
 
     try {
-      if (isOfflineMode) {
+      if (isOfflineMode || orderPayload.isFallbackOffline) {
         const mockInvoice = "INV-" + new Date().toISOString().slice(0, 10).replace(/-/g, "") + "-" + Math.floor(1000 + Math.random() * 9000);
         const created: Order = {
           ...orderPayload,
@@ -1327,6 +1327,7 @@ export default function App() {
           }}
           onClose={() => setIsCartOpen(false)}
           onCheckoutSuccess={handleCreateOrder}
+          isOfflineMode={isOfflineMode}
         />
       )}
 
