@@ -112,6 +112,11 @@ export interface Settings {
   seoDescription: string;
   contactPhone: string;
   contactEmail: string;
+  bannerBadge?: string;
+  bannerTitle?: string;
+  bannerDescription?: string;
+  bannerCtaText?: string;
+  bannerImageUrl?: string;
 }
 
 export interface Promo {

@@ -154,7 +154,7 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
                       key={idx}
                       onClick={() => setActiveImageIdx(idx)}
                       className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${
-                        activeImageIdx === idx ? "border-emerald-500 scale-95" : "border-gray-200"
+                        activeImageIdx === idx ? "border-zinc-950 scale-95" : "border-gray-200"
                       }`}
                     >
                       <img 
@@ -187,7 +187,7 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
                 </div>
                 <div className="flex justify-between">
                   <span>Status Garansi</span>
-                  <span className="text-emerald-600 font-semibold">Resmi 100% Original</span>
+                  <span className="text-zinc-800 font-semibold">Resmi 100% Original</span>
                 </div>
               </div>
             </div>
@@ -198,7 +198,7 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
             <div className="space-y-6">
               {/* labels & titles */}
               <div>
-                <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full">
+                <span className="text-xs font-bold text-zinc-900 uppercase tracking-widest bg-zinc-100 px-3 py-1 rounded-full">
                   {product.category} {product.subCategory ? `/ ${product.subCategory}` : ""}
                 </span>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-3 leading-tight tracking-tight">
@@ -254,7 +254,7 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
                         onClick={() => setSelectedColor(color)}
                         className={`text-xs font-semibold px-4.5 py-2.5 rounded-xl border transition-all ${
                           selectedColor === color 
-                            ? "border-emerald-500 bg-emerald-50 text-emerald-800 shadow-sm"
+                            ? "border-zinc-950 bg-zinc-50 text-zinc-950 shadow-sm"
                             : "border-gray-200 bg-white text-gray-700 hover:border-gray-400"
                         }`}
                       >
@@ -276,7 +276,7 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
                         onClick={() => setSelectedSize(size)}
                         className={`text-xs font-semibold px-4.5 py-2.5 rounded-xl border transition-all ${
                           selectedSize === size 
-                            ? "border-emerald-500 bg-emerald-50 text-emerald-800 shadow-sm"
+                            ? "border-zinc-950 bg-zinc-50 text-zinc-950 shadow-sm"
                             : "border-gray-200 bg-white text-gray-700 hover:border-gray-400"
                         }`}
                       >
@@ -314,7 +314,7 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
                 id="modal-direct-buy-btn"
                 disabled={product.stock === 0}
                 onClick={() => onInstantBuy(product, selectedColor, selectedSize)}
-                className="flex-1 py-4.5 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[15px] transition-all shadow-lg hover:shadow-emerald-600/10 flex items-center justify-center gap-2.5 disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
+                className="flex-1 py-4.5 px-6 rounded-2xl bg-zinc-950 hover:bg-zinc-800 text-white font-extrabold text-[15px] transition-all shadow-lg hover:shadow-zinc-950/10 flex items-center justify-center gap-2.5 disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
               >
                 <ShoppingBag className="w-5 h-5" />
                 <span>Beli Sekarang (Checkout Cepat)</span>
@@ -323,7 +323,7 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
               <button
                 id="modal-wa-buy-btn"
                 onClick={handleWhatsAppOrder}
-                className="py-4.5 px-6 rounded-2xl bg-white hover:bg-emerald-50 text-emerald-600 hover:text-emerald-700 font-extrabold text-[15px] transition-all border-2 border-emerald-500/20 hover:border-emerald-500/40 flex items-center justify-center gap-2"
+                className="py-4.5 px-6 rounded-2xl bg-white hover:bg-zinc-50 text-zinc-900 font-extrabold text-[15px] transition-all border-2 border-zinc-200 hover:border-zinc-300 flex items-center justify-center gap-2"
               >
                 <Send className="w-5 h-5 rotate-[15deg] fill-current" />
                 <span>Order via WA</span>
@@ -336,7 +336,7 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
         {relatedProducts.length > 0 && (
           <div id="related-panel" className="bg-white border-t border-gray-100 p-6 sm:p-8 rounded-b-3xl">
             <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <Info className="w-5 h-5 text-emerald-600" />
+              <Info className="w-5 h-5 text-zinc-900" />
               <span>Rekomendasi Produk Terkait</span>
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -347,7 +347,7 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
                   <div 
                     id={`related-card-${rel.id}`}
                     key={rel.id}
-                    className="flex gap-4 p-3 rounded-2xl border border-gray-100 hover:border-emerald-500/20 hover:bg-gray-50/50 cursor-pointer transition-all"
+                    className="flex gap-4 p-3 rounded-2xl border border-gray-100 hover:border-zinc-900/20 hover:bg-gray-50/50 cursor-pointer transition-all"
                     onClick={() => {
                       // Switch to looking at this related target
                       // Force updates inside parent container
@@ -364,7 +364,7 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
                     </div>
                     <div className="flex flex-col justify-center">
                       <h4 className="text-xs font-bold text-gray-800 line-clamp-1 leading-tight">{rel.name}</h4>
-                      <p className="text-xs font-bold text-emerald-600 mt-1">{formatIDR(relPrice)}</p>
+                      <p className="text-xs font-bold text-zinc-950 mt-1">{formatIDR(relPrice)}</p>
                       <span className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide">{rel.category}</span>
                     </div>
                   </div>

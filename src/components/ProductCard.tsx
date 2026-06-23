@@ -99,16 +99,16 @@ export default function ProductCard({ product, onViewDetail, onBuyImmediate }: P
       <div className="p-3.5 flex-1 flex flex-col justify-between">
         <div>
           {/* Tag Category */}
-          <span className="text-[9px] text-[#03AC0E] dark:text-emerald-400 font-extrabold uppercase tracking-widest block mb-1">
+          <span className="text-[9px] text-zinc-500 dark:text-zinc-400 font-extrabold uppercase tracking-widest block mb-1">
             {product.category}
           </span>
           <h3 
             onClick={() => onViewDetail(product)}
-            className="text-[12px] font-bold text-gray-800 line-clamp-2 cursor-pointer leading-snug tracking-tight hover:text-[#03AC0E] transition-colors"
+            className="text-[12px] font-bold text-gray-800 line-clamp-2 cursor-pointer leading-snug tracking-tight hover:text-zinc-950 transition-colors"
           >
             {product.name}
           </h3>
-
+          
           {/* Crisp Price tags - tight format */}
           <div className="mt-1.5 space-y-0.5">
             <div className="text-[15px] font-black text-[#212121] leading-none">
@@ -136,8 +136,8 @@ export default function ProductCard({ product, onViewDetail, onBuyImmediate }: P
           {/* Store Verification & Location (e.g. Jakarta Pusat, Beas Ongkir) */}
           <div className="flex items-center gap-1.5 text-[10px] text-gray-500 select-none">
             <div className="flex items-center gap-1 shrink-0">
-              <span className="w-3.5 h-3.5 bg-[#03AC0E] text-white rounded-full flex items-center justify-center font-black text-[8px]">✓</span>
-              <span className="font-extrabold text-[#03AC0E]">Mall</span>
+              <span className="w-3.5 h-3.5 bg-zinc-950 text-white rounded-full flex items-center justify-center font-black text-[8px]">✓</span>
+              <span className="font-extrabold text-zinc-950">Mall</span>
             </div>
             <span className="text-gray-300">•</span>
             <span className="truncate font-semibold text-gray-500">Jakarta Pusat</span>
@@ -149,14 +149,14 @@ export default function ProductCard({ product, onViewDetail, onBuyImmediate }: P
               id={`quick-buy-${product.id}`}
               disabled={product.stock === 0}
               onClick={() => onBuyImmediate(product)}
-              className="flex-1 text-center py-2 px-3 rounded-lg bg-[#03AC0E] hover:bg-[#028F0B] text-white disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-[11px] font-bold transition-all"
+              className="flex-1 text-center py-2.5 px-3 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-[11px] font-bold transition-all"
             >
               Beli
             </button>
             <button
               id={`details-view-${product.id}`}
               onClick={() => onViewDetail(product)}
-              className="w-8 h-8 rounded-lg bg-[#E8F5E9] hover:bg-[#C8E6C9] text-[#03AC0E] flex items-center justify-center transition-all text-xs"
+              className="w-9 h-9 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-900 flex items-center justify-center transition-all text-xs border border-zinc-200/40"
               title="Detail"
             >
               <ArrowRight className="w-3.5 h-3.5" />

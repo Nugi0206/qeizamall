@@ -22,6 +22,26 @@ export default function AdminSettings({ settings, onUpdateSettings }: AdminSetti
   const [seoTitle, setSeoTitle] = useState(settings.seoTitle || "");
   const [seoDescription, setSeoDescription] = useState(settings.seoDescription || "");
 
+  // Banner Editor states
+  const [bannerBadge, setBannerBadge] = useState(settings.bannerBadge || "");
+  const [bannerTitle, setBannerTitle] = useState(settings.bannerTitle || "");
+  const [bannerDescription, setBannerDescription] = useState(settings.bannerDescription || "");
+  const [bannerCtaText, setBannerCtaText] = useState(settings.bannerCtaText || "");
+  const [bannerImageUrl, setBannerImageUrl] = useState(settings.bannerImageUrl || "");
+
+  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          setBannerImageUrl(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Warehouse Address details states
   const [street, setStreet] = useState(settings.warehouseAddress.street || "");
   const [kelurahan, setKelurahan] = useState(settings.warehouseAddress.kelurahan || "");
@@ -111,7 +131,12 @@ export default function AdminSettings({ settings, onUpdateSettings }: AdminSetti
           isActive: isQRISActive,
           qrisUrl: qrisUrl.trim()
         }
-      }
+      },
+      bannerBadge: bannerBadge.trim(),
+      bannerTitle: bannerTitle.trim(),
+      bannerDescription: bannerDescription.trim(),
+      bannerCtaText: bannerCtaText.trim(),
+      bannerImageUrl: bannerImageUrl.trim()
     };
 
     onUpdateSettings(updates);
@@ -173,6 +198,136 @@ export default function AdminSettings({ settings, onUpdateSettings }: AdminSetti
               onChange={(e) => setAboutText(e.target.value)}
               className="w-full text-xs font-semibold p-3.5 border border-gray-200 rounded-xl"
             />
+          </div>
+        </div>
+      </div>
+
+      {/* 1B. HERO BANNER EXTRA CONFIGURATION EDITOR (NEW FEATURE) */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+        <h3 className="text-base font-extrabold text-gray-950 border-b pb-3 flex items-center gap-2">
+          <Globe className="text-emerald-500 w-5 h-5" />
+          <span>Pengaturan Hero Banner Beranda</span>
+        </h3>
+        
+        <p className="text-xs text-gray-500 leading-relaxed">
+          Kustomisasi tampilan banner utama di halaman beranda toko Anda. Anda dapat mengubah konten teks estetis maupun meng-upload gambar latar belakang (background) baru secara mudah yang akan langsung disimpan.
+        </p>
+
+        {/* Input fields */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Teks Badge / Subtitle Atas</label>
+            <input
+              type="text"
+              placeholder="Contoh: ✦ ESENSI KEANGGUNAN MODERN ✦"
+              value={bannerBadge}
+              onChange={(e) => setBannerBadge(e.target.value)}
+              className="w-full text-xs font-semibold p-3.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-950"
+            />
+          </div>
+
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Judul Utama Hero Banner (Mendukung Enter)</label>
+            <textarea
+              rows={1}
+              placeholder="Contoh: Kurasi Gaya Hidup \nMinimalis Kreatif"
+              value={bannerTitle}
+              onChange={(e) => setBannerTitle(e.target.value)}
+              className="w-full text-xs font-semibold p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-950 resize-none"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Deskripsi Singkat Banner</label>
+            <textarea
+              rows={3}
+              placeholder="Masukkan deskripsi estetis koleksi atau promo Anda..."
+              value={bannerDescription}
+              onChange={(e) => setBannerDescription(e.target.value)}
+              className="w-full text-xs font-semibold p-3.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-950 resize-none"
+            />
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Teks Tombol CTA (Call to Action)</label>
+              <input
+                type="text"
+                placeholder="Contoh: Jelajahi Produk"
+                value={bannerCtaText}
+                onChange={(e) => setBannerCtaText(e.target.value)}
+                className="w-full text-xs font-semibold p-3.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-950"
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">URL Gambar Background Banner (Atau Upload di bawah)</label>
+              <input
+                type="text"
+                placeholder="Masukkan link HTTPS gambar background..."
+                value={bannerImageUrl}
+                onChange={(e) => setBannerImageUrl(e.target.value)}
+                className="w-full text-xs font-semibold p-3.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-zinc-950"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Upload element */}
+        <div className="pt-2 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Upload File Gambar Banner Baru</label>
+            <div className="relative border-2 border-dashed border-gray-200 rounded-2xl p-4 bg-gray-50/50 hover:bg-gray-50 transition-all flex flex-col items-center justify-center text-center cursor-pointer">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleBannerUpload}
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+              />
+              <span className="text-2xl mb-1 mt-1">📁</span>
+              <span className="text-xs font-bold text-gray-700">Pilih berkas gambar banner Anda</span>
+              <span className="text-[10px] text-gray-400 mt-1">Mendukung file PNG, JPG, JPEG, WEBP. Maksimal 3MB.</span>
+            </div>
+          </div>
+
+          {/* Banner Live Miniature Preview */}
+          <div className="space-y-2">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Draft Preview Tampilan Banner</span>
+            <div 
+              style={bannerImageUrl ? { backgroundImage: `url(${bannerImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : {}}
+              className="w-full min-h-[110px] rounded-2xl bg-zinc-950 border border-zinc-800 p-4 text-white relative overflow-hidden flex flex-col justify-between"
+            >
+              {bannerImageUrl && <div className="absolute inset-0 bg-black/55 z-0" />}
+              
+              <div className="relative z-10 text-left">
+                <p className="text-[7px] tracking-[0.15em] font-bold text-zinc-400 uppercase">
+                  {bannerBadge || "ESENSI KEANGGUNAN MODERN"}
+                </p>
+                <h4 className="text-xs font-black font-logo tracking-wider text-white mt-1 whitespace-pre-line leading-tight">
+                  {bannerTitle || "Kurasi Gaya Hidup \nMinimalis Kreatif"}
+                </h4>
+                <p className="text-[8px] text-zinc-400 line-clamp-1 max-w-xs mt-1 leading-normal">
+                  {bannerDescription || "Kurasi gaya hidup estetis dengan kualitas material premium..."}
+                </p>
+              </div>
+
+              <div className="relative z-10 flex justify-between items-end mt-2">
+                <span className="bg-white text-zinc-950 px-3 py-1 rounded text-[7px] font-bold uppercase tracking-wider">
+                  {bannerCtaText || "Jelajahi Produk"}
+                </span>
+                {bannerImageUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setBannerImageUrl("")}
+                    className="text-[9px] font-bold text-rose-400 bg-black/60 px-2 py-0.5 rounded hover:bg-rose-500 hover:text-white transition-all"
+                  >
+                    Hapus Foto ✕
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -43,17 +43,45 @@ const REGION_DATA: RegionData = {
   },
   "Jawa Barat": {
     "Kab. Cirebon": {
-      "Arjawinangun": ["Arjawinangun", "Jungjang", "Tegalgubug", "Kebonturi", "Geyongan", "Bulak", "Semplo", "Jungjang Wetan", "Karangsambung", "Tegalgubug Lor"],
-      "Weru": ["Weru Kidul", "Weru Lor", "Megu Gede", "Megu Cilik", "Karangsari", "Setu Kulon", "Setu Patok"],
-      "Klangenan": ["Klangenan", "Jemaras Kidul", "Jemaras Lor", "Kreyo", "Pekantingan", "Serang", "Slangit"],
-      "Plumbon": ["Plumbon", "Pabuaran", "Gombang", "Kedungsari", "Bode Lor", "Karangmulya", "Marikangen"],
-      "Sumber": ["Sumber", "Babakan", "Gegunung", "Kemantren", "Pejambon", "Sendang", "Watubelah"],
-      "Kedawung": ["Kedawung", "Kertawinangun", "Sukamulya", "Tengah Tani", "Pilangsari", "Sutawinangun"],
-      "Palimanan": ["Palimanan", "Balerante", "Ciawi", "Siliwangi", "Tegalkarang", "Pegagan"],
-      "Gegesik": ["Gegesik Kidul", "Gegesik Lor", "Gegesik Wetan", "Kedungdalem", "Panunggul", "Sibubut"],
-      "Dukupuntang": ["Dukupuntang", "Cangkoak", "Cisaat", "Cipari", "Girireja", "Sindangjawa"],
-      "Ciwaringin": ["Ciwaringin", "Babakan", "Gombang", "Beringin", "Budur", "Galagamba"],
-      "Losari": ["Losari Kidul", "Losari Lor", "Ambro", "Barisan", "Kalurah", "Mulyasari"]
+      "Arjawinangun": ["Arjawinangun", "Jungjang", "Tegalgubug", "Kebonturi"],
+      "Astanajapura": ["Astanajapura", "Buntet", "Japura Bakti", "Kanci"],
+      "Babakan": ["Babakan", "Babakan Gebang", "Gembongan", "Kudumulya"],
+      "Beber": ["Beber", "Cipinang", "Kondangsari", "Wanayasa"],
+      "Ciledug": ["Ciledug Kulon", "Ciledug Lor", "Ciledug Tengah", "Damarguna"],
+      "Ciwaringin": ["Ciwaringin", "Galagamba", "Gombang", "Beringin"],
+      "Depok": ["Depok", "Kasugengan Kidul", "Kasugengan Lor", "Waruroyom"],
+      "Dukupuntang": ["Dukupuntang", "Cangkoak", "Cisaat", "Sindangjawa"],
+      "Gebang": ["Gebang", "Gebang Kulon", "Gebang Ilir", "Gebang Udik"],
+      "Gegesik": ["Gegesik Kidul", "Gegesik Lor", "Gegesik Wetan", "Sibubut"],
+      "Gempol": ["Gempol", "Cupang", "Kempek", "Kedungbunder"],
+      "Greged": ["Greged", "Durajaya", "Gumulunglebak", "Sindangkempeng"],
+      "Gunungjati": ["Gunungjati", "Benda", "Klayan", "Jadimulya"],
+      "Jamblang": ["Jamblang", "Boit", "Bakung Kidul", "Bakung Lor"],
+      "Japura Kidul": ["Japura Kidul", "Japura Lor"],
+      "Kapetakan": ["Kapetakan", "Bungko", "Dukuh", "Purwawinangun"],
+      "Karangsembung": ["Karangsembung", "Karangsuwung", "Kubangkarang", "Tambelang"],
+      "Karangwareng": ["Karangwareng", "Blasari", "Karangwuni", "Sumurkondang"],
+      "Kedawung": ["Kedawung", "Kertawinangun", "Sutawinangun", "Pilangsari"],
+      "Klangenan": ["Klangenan", "Jemaras Kidul", "Jemaras Lor", "Kreyo"],
+      "Lemahabang": ["Lemahabang", "Cipeujeuh Wetan", "Cipeujeuh Kulon", "Sindanglaut"],
+      "Losari": ["Losari Kidul", "Losari Lor", "Ambro", "Mulyasari"],
+      "Mundu": ["Mundu Pesisir", "Bandengan", "Citemu", "Suci"],
+      "Pabedilan": ["Pabedilan Kidul", "Pabedilan Lor", "Babakan Losari", "Siliwangi"],
+      "Pabuaran": ["Pabuaran Kidul", "Pabuaran Lor", "Hulubanteng", "Jatiseeng"],
+      "Palimanan": ["Palimanan", "Balerante", "Ciawi", "Tegalkarang"],
+      "Panguragan": ["Panguragan", "Panguragan Kulon", "Panguragan Lor", "Gujeg"],
+      "Pasaleman": ["Pasaleman", "Cilengkrang", "Cilengkrang Girang", "Tonjong"],
+      "Plered": ["Plered", "Tegalsari", "Kaliwulu", "Weru Lor"],
+      "Plumbon": ["Plumbon", "Pabuaran", "Gombang", "Bode Lor"],
+      "Sedong": ["Sedong Kidul", "Sedong Lor", "Winduhaji", "Karangwuni"],
+      "Sumber": ["Sumber", "Babakan", "Gegunung", "Watubelah"],
+      "Suranenggala": ["Suranenggala", "Suranenggala Kidul", "Suranenggala Lor", "Keraton"],
+      "Susukan": ["Susukan", "Bunder", "Kedungbunder", "Ujunggebang"],
+      "Susukanlebak": ["Susukanlebak", "Ciawi Gajah", "Karangmangu", "Pasawahan"],
+      "Talun": ["Talun", "Cirebon Girang", "Kecomberan", "Wanasaba Kidul"],
+      "Tengah Tani": ["Tengah Tani", "Gesik", "Kalibaru", "Kemlaka Gede"],
+      "Waled": ["Waled Kota", "Cibogo", "Gunungsari", "Karangsari"],
+      "Weru": ["Weru Kidul", "Weru Lor", "Megu Gede", "Megu Cilik"]
     },
     "Kota Cirebon": {
       "Kesambi": ["Kesambi", "Drajat", "Karyamulya", "Pekiringan", "Sunyaragi"],
@@ -141,27 +169,92 @@ const REGION_DATA: RegionData = {
       "Medan Baru": ["Padang Bulan", "Darat", "Babura", "Merdeka"],
       "Medan Selayang": ["Padang Bulan Selayang II", "Beringin", "Sempakata"]
     }
+  },
+  "Papua Barat Daya": {
+    "Kota Sorong": {
+      "Sorong": ["Sorong", "Remu", "Klademak", "Malaingkedi"]
+    }
+  },
+  "Papua Tengah": {
+    "Kab. Nabire": {
+      "Nabire": ["Oyehe", "Girimulyo", "Karang Mulia", "Kali Bobo"]
+    }
   }
 };
 
-const getPostalCodeForKecamatan = (kec: string): string => {
-  const norm = kec.toLowerCase().trim();
+const normalizeStr = (str: string): string => {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/^(kab\.|kabupaten|kota|provinsi|desa|kelurahan|kecamatan)\s+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
+const getPostalCodeForKecamatan = (kec: string, kab: string = ""): string => {
+  const norm = normalizeStr(kec);
+  const normKab = normalizeStr(kab);
+
+  // Resolve overlaps (e.g. Depok as a kabupaten vs Sleman district vs Cirebon district)
+  if (norm === "depok") {
+    if (normKab.includes("sleman")) return "55281";
+    if (normKab.includes("cirebon")) return "45155";
+    return "16424"; // Default to Kota Depok
+  }
+
+  // Papua
+  if (norm === "sorong") return "98413";
+  if (norm === "nabire") return "98811";
+
+  // Kabupaten Cirebon
   if (norm === "arjawinangun") return "45162";
-  if (norm === "weru") return "45154";
-  if (norm === "klangenan") return "45156";
-  if (norm === "plumbon") return "45155";
-  if (norm === "sumber") return "45611";
-  if (norm === "kedawung") return "45153";
-  if (norm === "palimanan") return "45161";
-  if (norm === "gegesik") return "45164";
-  if (norm === "dukupuntang") return "45612";
+  if (norm === "astanajapura") return "45181";
+  if (norm === "babakan") return "45191";
+  if (norm === "beber") return "45172";
+  if (norm === "ciledug") return "45197";
   if (norm === "ciwaringin") return "45167";
+  if (norm === "dukupuntang") return "45612";
+  if (norm === "gebang") return "45194";
+  if (norm === "gegesik") return "45164";
+  if (norm === "gempol") return "45161";
+  if (norm === "greged") return "45172";
+  if (norm === "gunungjati") return "45151";
+  if (norm === "jamblang") return "45156";
+  if (norm === "japura kidul") return "45181";
+  if (norm === "kapetakan") return "45152";
+  if (norm === "karangsembung") return "45186";
+  if (norm === "karangwareng") return "45186";
+  if (norm === "kedawung") return "45153";
+  if (norm === "klangenan") return "45156";
+  if (norm === "lemahabang") return "45183";
   if (norm === "losari") return "45174";
+  if (norm === "mundu") return "45173";
+  if (norm === "pabedilan") return "45193";
+  if (norm === "pabuaran") return "45188";
+  if (norm === "palimanan") return "45161";
+  if (norm === "panguragan") return "45163";
+  if (norm === "pasaleman") return "45197";
+  if (norm === "plered") return "45154";
+  if (norm === "plumbon") return "45155";
+  if (norm === "sedong") return "45187";
+  if (norm === "sumber") return "45611";
+  if (norm === "suranenggala") return "45151";
+  if (norm === "susukan") return "45166";
+  if (norm === "susukanlebak") return "45185";
+  if (norm === "talun") return "45171";
+  if (norm === "tengah tani") return "45153";
+  if (norm === "waled") return "45187";
+  if (norm === "weru") return "45154";
+
+  // Kota Cirebon
   if (norm === "kesambi") return "45134";
   if (norm === "kejaksan") return "45123";
   if (norm === "harjamukti") return "45143";
   if (norm === "lemahwungkuk") return "45111";
   if (norm === "pekalipan") return "45117";
+
+  // Jakarta, Bandung, Banten, dsb.
   if (norm === "tebet") return "12810";
   if (norm === "cilandak") return "12430";
   if (norm === "kebayoran baru") return "12110";
@@ -203,7 +296,6 @@ const getPostalCodeForKecamatan = (kec: string): string => {
   if (norm === "lowokwaru") return "65141";
   if (norm === "klojen") return "65111";
   if (norm === "umbulharjo") return "55161";
-  if (norm === "depok") return "55281";
   if (norm === "mlati") return "55284";
   if (norm === "denpasar barat") return "80119";
   if (norm === "denpasar timur") return "80239";
@@ -252,51 +344,13 @@ export default function CartAndCheckoutModal({
   const [kabupaten, setKabupaten] = useState("");
   const [provinsi, setProvinsi] = useState("");
   const [postalCode, setPostalCode] = useState("");
-  const [isManualAddress, setIsManualAddress] = useState(false);
 
-  // Synchronous selection lists
-  const provinceList = Object.keys(REGION_DATA);
-  const cityList = provinsi && REGION_DATA[provinsi] ? Object.keys(REGION_DATA[provinsi]) : [];
-  const districtList = provinsi && kabupaten && REGION_DATA[provinsi]?.[kabupaten] ? Object.keys(REGION_DATA[provinsi][kabupaten]) : [];
-  const villageList = provinsi && kabupaten && kecamatan && REGION_DATA[provinsi]?.[kabupaten]?.[kecamatan] ? REGION_DATA[provinsi][kabupaten][kecamatan] : [];
+  const [validationError, setValidationError] = useState("");
 
   // Promo Engine
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<Promo | null>(null);
   const [promoError, setPromoError] = useState("");
-
-  // Shipping cost states
-  const [loadingRates, setLoadingRates] = useState(false);
-  const [shippingRates, setShippingRates] = useState<any[]>([]);
-  const [selectedRate, setSelectedRate] = useState<any | null>(null);
-
-  const getFallbackRates = () => {
-    const couriers = settings?.activeCouriers && settings.activeCouriers.length > 0 
-      ? settings.activeCouriers 
-      : ["JNE", "J&T", "SiCepat"];
-    
-    return couriers.map((courier) => {
-      let price = 15000;
-      if (courier.toUpperCase().includes("JNE")) price = 15000;
-      else if (courier.toUpperCase().includes("J&T")) price = 16000;
-      else if (courier.toUpperCase().includes("SICEPAT")) price = 14000;
-      else if (courier.toUpperCase().includes("GOJEK") || courier.toUpperCase().includes("GRAB")) price = 25000;
-      
-      return {
-        courier: courier,
-        service: "Reguler (Manual)",
-        price: price,
-        estimatedDays: "2-4 Hari"
-      };
-    });
-  };
-
-  // Populate standard flat rates immediately on load so the checkout is never blocked
-  useEffect(() => {
-    const fallback = getFallbackRates();
-    setShippingRates(fallback);
-    setSelectedRate(fallback[0]);
-  }, [settings]);
 
   // Payments
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "Transfer Bank" | "QRIS">("Transfer Bank");
@@ -319,52 +373,6 @@ export default function CartAndCheckoutModal({
     return acc + activePrice * item.quantity;
   }, 0);
 
-  // Trigger postage rates fetching when province/kabupaten/weight updates
-  useEffect(() => {
-    if (provinsi.trim().length > 2 && kabupaten.trim().length > 2 && totalWeight > 0) {
-      fetchShippingRates();
-    }
-  }, [provinsi, kabupaten, totalWeight]);
-
-  const fetchShippingRates = async () => {
-    setLoadingRates(true);
-    try {
-      const response = await fetch("/api/shipping/rates", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          weight: totalWeight,
-          destination: { street, kelurahan, kecamatan, kabupaten, provinsi, postalCode }
-        })
-      });
-      const data = await response.json();
-      if (data.rates && data.rates.length > 0) {
-        // Filter rates based on Admin enabled couriers in dashboard!
-        const filteredRates = data.rates.filter((rate: any) => 
-          settings.activeCouriers.some((activeC) => rate.courier.toLowerCase().includes(activeC.toLowerCase()))
-        );
-        if (filteredRates.length > 0) {
-          setShippingRates(filteredRates);
-          setSelectedRate(filteredRates[0]);
-        } else {
-          const fallback = getFallbackRates();
-          setShippingRates(fallback);
-          if (!selectedRate) setSelectedRate(fallback[0]);
-        }
-      } else {
-        const fallback = getFallbackRates();
-        setShippingRates(fallback);
-        if (!selectedRate) setSelectedRate(fallback[0]);
-      }
-    } catch (err) {
-      console.error("Error fetching rates", err);
-      const fallback = getFallbackRates();
-      setShippingRates(fallback);
-      if (!selectedRate) setSelectedRate(fallback[0]);
-    } finally {
-      setLoadingRates(false);
-    }
-  };
 
   // Promo Apply logic
   const handleApplyPromo = () => {
@@ -400,13 +408,13 @@ export default function CartAndCheckoutModal({
       discountAmount = Math.round((subtotal * appliedPromo.value) / 100);
     } else if (appliedPromo.type === "fixed") {
       discountAmount = appliedPromo.value;
-    } else if (appliedPromo.type === "free_shipping" && selectedRate) {
-      discountAmount = Math.min(selectedRate.price, appliedPromo.value);
+    } else if (appliedPromo.type === "free_shipping") {
+      discountAmount = 0; // No courier fees exist to discount
     }
   }
 
-  const shippingCost = selectedRate ? selectedRate.price : 0;
-  const finalTotal = Math.max(0, subtotal + shippingCost - discountAmount);
+  const shippingCost = 0;
+  const finalTotal = Math.max(0, subtotal - discountAmount);
 
   // Auto set bank choice if bank transfers is active
   useEffect(() => {
@@ -423,11 +431,6 @@ export default function CartAndCheckoutModal({
 
     if (!customerName || !customerPhone || !street || !kelurahan || !kecamatan || !kabupaten || !provinsi || !postalCode) {
       alert("Silakan lengkapi seluruh formulir pengiriman sebelum melanjutkan checkout!");
-      return;
-    }
-
-    if (!selectedRate) {
-      alert("Silakan pilih ekspedisi kurir yang sesuai!");
       return;
     }
 
@@ -457,10 +460,10 @@ export default function CartAndCheckoutModal({
       customerPhone,
       address: addressPayload,
       items: itemsPayload,
-      shippingCourier: selectedRate.courier,
-      shippingCost,
-      shippingOption: selectedRate.service,
-      estimatedDays: selectedRate.estimatedDays,
+      shippingCourier: "WA Admin",
+      shippingCost: 0,
+      shippingOption: "TBD via Chat",
+      estimatedDays: "TBD via Chat",
       paymentMethod,
       paymentBank: paymentMethod === "Transfer Bank" ? selectedBank : null,
       totalWeight,
@@ -632,8 +635,8 @@ export default function CartAndCheckoutModal({
 
         <div className="flex justify-between text-xs text-zinc-500 font-medium pb-1">
           <span>Pengiriman</span>
-          <span className="text-zinc-700">
-            {selectedRate ? formatIDR(shippingCost) : <span className="text-zinc-400 text-[10px] uppercase font-bold tracking-wider">Dihitung pada tahap berikutnya</span>}
+          <span className="text-zinc-900 font-bold bg-zinc-100 px-2 py-0.5 rounded text-[10px]">
+            Dihitung via WhatsApp Admin
           </span>
         </div>
 
@@ -748,20 +751,6 @@ export default function CartAndCheckoutModal({
               <div className="space-y-3 pt-4 border-t border-zinc-150">
                 <div className="flex justify-between items-center pb-1">
                   <h3 className="text-sm font-black text-zinc-900 uppercase tracking-wider">Alamat Pengiriman</h3>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsManualAddress(!isManualAddress);
-                      setProvinsi("");
-                      setKabupaten("");
-                      setKecamatan("");
-                      setKelurahan("");
-                      setPostalCode("");
-                    }}
-                    className="text-[10.5px] text-zinc-500 hover:text-zinc-950 font-black flex items-center gap-1 transition-colors select-none"
-                  >
-                    <span>{isManualAddress ? "📁 Pilih Wilayah Otomatis" : "✍️ Tulis Alamat Manual"}</span>
-                  </button>
                 </div>
                 
                 <div className="space-y-3">
@@ -776,142 +765,51 @@ export default function CartAndCheckoutModal({
                     />
                   </div>
 
-                  {isManualAddress ? (
-                    <>
-                      <div className="grid grid-cols-2 gap-3">
-                        <input
-                          required
-                          type="text"
-                          placeholder="Provinsi (Contoh: Jawa Barat)"
-                          value={provinsi}
-                          onChange={(e) => setProvinsi(e.target.value)}
-                          className="w-full text-xs font-semibold py-3.5 px-4 bg-zinc-50/50 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-950 placeholder-zinc-400 focus:bg-white transition-all"
-                        />
-                        <input
-                          required
-                          type="text"
-                          placeholder="Kabupaten / Kota (Kota Bandung)"
-                          value={kabupaten}
-                          onChange={(e) => setKabupaten(e.target.value)}
-                          className="w-full text-xs font-semibold py-3.5 px-4 bg-zinc-50/50 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-950 placeholder-zinc-400 focus:bg-white transition-all"
-                        />
-                      </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      required
+                      type="text"
+                      placeholder="Provinsi (Contoh: Jawa Timur)"
+                      value={provinsi}
+                      onChange={(e) => setProvinsi(e.target.value)}
+                      className="w-full text-xs font-semibold py-3.5 px-4 bg-zinc-50/50 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-950 placeholder-zinc-400 focus:bg-white transition-all"
+                    />
+                    <input
+                      required
+                      type="text"
+                      placeholder="Kabupaten / Kota (Contoh: Surabaya)"
+                      value={kabupaten}
+                      onChange={(e) => setKabupaten(e.target.value)}
+                      className="w-full text-xs font-semibold py-3.5 px-4 bg-zinc-50/50 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-950 placeholder-zinc-400 focus:bg-white transition-all"
+                    />
+                  </div>
 
-                      <div className="grid grid-cols-3 gap-3">
-                        <input
-                          required
-                          type="text"
-                          placeholder="Kecamatan"
-                          value={kecamatan}
-                          onChange={(e) => setKecamatan(e.target.value)}
-                          className="w-full text-xs font-semibold py-3.5 px-4 bg-zinc-50/50 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-950 placeholder-zinc-400 focus:bg-white transition-all"
-                        />
-                        <input
-                          required
-                          type="text"
-                          placeholder="Kelurahan"
-                          value={kelurahan}
-                          onChange={(e) => setKelurahan(e.target.value)}
-                          className="w-full text-xs font-semibold py-3.5 px-4 bg-zinc-50/50 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-950 placeholder-zinc-400 focus:bg-white transition-all"
-                        />
-                        <input
-                          required
-                          type="text"
-                          placeholder="Kode Pos"
-                          value={postalCode}
-                          onChange={(e) => setPostalCode(e.target.value)}
-                          className="w-full text-xs font-semibold py-3.5 px-4 bg-zinc-50/50 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-950 placeholder-zinc-400 focus:bg-white transition-all font-mono"
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <select
-                          required
-                          value={provinsi}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setProvinsi(val);
-                            setKabupaten("");
-                            setKecamatan("");
-                            setKelurahan("");
-                            setPostalCode("");
-                          }}
-                          className="w-full text-xs font-semibold py-3.5 px-4 bg-zinc-50/50 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-950 focus:bg-white transition-all text-zinc-800"
-                        >
-                          <option value="">-- Pilih Provinsi --</option>
-                          {provinceList.map((p) => (
-                            <option key={p} value={p}>{p}</option>
-                          ))}
-                        </select>
-
-                        <select
-                          required
-                          disabled={!provinsi}
-                          value={kabupaten}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setKabupaten(val);
-                            setKecamatan("");
-                            setKelurahan("");
-                            setPostalCode("");
-                          }}
-                          className="w-full text-xs font-semibold py-3.5 px-4 bg-zinc-50/50 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-950 focus:bg-white transition-all text-zinc-800 disabled:opacity-60"
-                        >
-                          <option value="">-- Pilih Kabupaten / Kota --</option>
-                          {cityList.map((c) => (
-                            <option key={c} value={c}>{c}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <select
-                          required
-                          disabled={!kabupaten}
-                          value={kecamatan}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setKecamatan(val);
-                            setKelurahan("");
-                            const zip = getPostalCodeForKecamatan(val);
-                            setPostalCode(zip);
-                          }}
-                          className="w-full text-xs font-semibold py-3.5 px-4 bg-zinc-50/50 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-950 focus:bg-white transition-all text-zinc-800 disabled:opacity-60"
-                        >
-                          <option value="">-- Pilih Kecamatan --</option>
-                          {districtList.map((d) => (
-                            <option key={d} value={d}>{d}</option>
-                          ))}
-                        </select>
-
-                        <select
-                          required
-                          disabled={!kecamatan}
-                          value={kelurahan}
-                          onChange={(e) => {
-                            setKelurahan(e.target.value);
-                          }}
-                          className="w-full text-xs font-semibold py-3.5 px-4 bg-zinc-50/50 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-950 focus:bg-white transition-all text-zinc-800 disabled:opacity-60"
-                        >
-                          <option value="">-- Pilih Kelurahan --</option>
-                          {villageList.map((v) => (
-                            <option key={v} value={v}>{v}</option>
-                          ))}
-                        </select>
-
-                        <input
-                          required
-                          type="text"
-                          placeholder="Kode Pos"
-                          value={postalCode}
-                          onChange={(e) => setPostalCode(e.target.value)}
-                          className="w-full text-xs font-semibold py-3.5 px-4 bg-zinc-50/55 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-950 placeholder-zinc-400 focus:bg-white transition-all font-mono"
-                        />
-                      </div>
-                    </>
-                  )}
+                  <div className="grid grid-cols-3 gap-3">
+                    <input
+                      required
+                      type="text"
+                      placeholder="Kecamatan"
+                      value={kecamatan}
+                      onChange={(e) => setKecamatan(e.target.value)}
+                      className="w-full text-xs font-semibold py-3.5 px-4 bg-zinc-50/50 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-950 placeholder-zinc-400 focus:bg-white transition-all"
+                    />
+                    <input
+                      required
+                      type="text"
+                      placeholder="Kelurahan"
+                      value={kelurahan}
+                      onChange={(e) => setKelurahan(e.target.value)}
+                      className="w-full text-xs font-semibold py-3.5 px-4 bg-zinc-50/50 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-950 placeholder-zinc-400 focus:bg-white transition-all"
+                    />
+                    <input
+                      required
+                      type="text"
+                      placeholder="Kode Pos"
+                      value={postalCode}
+                      onChange={(e) => setPostalCode(e.target.value)}
+                      className="w-full text-xs font-semibold py-3.5 px-4 bg-zinc-50/50 border border-zinc-200 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-950 placeholder-zinc-400 focus:bg-white transition-all font-mono"
+                    />
+                  </div>
 
                   <div>
                     <input
@@ -925,62 +823,7 @@ export default function CartAndCheckoutModal({
                 </div>
               </div>
 
-              {/* BLOCK 3: Biteship Live Courier Rates Selector */}
-              <div className="space-y-3 pt-4 border-t border-zinc-150">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-sm font-black text-zinc-900 uppercase tracking-wider">Metode Pengiriman</h3>
-                  <span className="text-[9px] bg-zinc-950 text-white font-black px-2 py-0.5 rounded-sm uppercase tracking-widest font-mono">
-                    Biteship API
-                  </span>
-                </div>
 
-                {loadingRates ? (
-                  <div className="py-8 bg-zinc-50 rounded-md border border-zinc-200 flex flex-col items-center justify-center gap-2">
-                    <span className="w-5 h-5 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin" />
-                    <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Menghitung tarif ongkos kirim otomatis...</span>
-                  </div>
-                ) : shippingRates.length === 0 ? (
-                  <div className="p-4 bg-zinc-50 border border-zinc-150 rounded-md flex items-start gap-2.5">
-                    <Info className="w-4 h-4 text-zinc-550 shrink-0 mt-0.5" />
-                    <p className="text-[11px] text-zinc-500 leading-normal">
-                      Silakan tulis **Provinsi** & **Kabupaten / Kota** di formulir atas untuk memicu perhitungan kurir otomatis yang didukung Biteship.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="border border-zinc-200 rounded-md divide-y divide-zinc-200 overflow-hidden shadow-xs">
-                    {shippingRates.map((rate, rIdx) => (
-                      <label
-                        key={rIdx}
-                        className={`p-4 cursor-pointer transition-colors flex items-center justify-between ${
-                          selectedRate && selectedRate.service === rate.service && selectedRate.courier === rate.courier
-                            ? "bg-zinc-50"
-                            : "hover:bg-zinc-50/40 bg-white"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="radio"
-                            name="shippingRate"
-                            className="accent-zinc-950 w-4 h-4"
-                            checked={selectedRate && selectedRate.service === rate.service && selectedRate.courier === rate.courier}
-                            onChange={() => setSelectedRate(rate)}
-                          />
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-bold text-zinc-900 uppercase tracking-tight">{rate.courier}</span>
-                              <span className="text-[10px] text-zinc-400 font-medium font-sans">({rate.service})</span>
-                            </div>
-                            <span className="text-[10px] text-zinc-500 block mt-0.5">Estimasi sampai: {rate.estimatedDays}</span>
-                          </div>
-                        </div>
-                        <span className="text-xs font-bold text-zinc-900">
-                          {formatIDR(rate.price)}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
 
               {/* BLOCK 4: Metode Pembayaran (Clean Modern Style) */}
               <div className="space-y-3 pt-4 border-t border-zinc-150">
@@ -1107,6 +950,16 @@ export default function CartAndCheckoutModal({
               </div>
 
               {/* FINAL SUBMIT ACTION BUTTON */}
+              {validationError && (
+                <div className="p-3.5 bg-red-50 border border-red-250 text-red-900 rounded-md text-xs font-semibold leading-relaxed flex items-start gap-2.5 mt-8">
+                  <span className="text-sm mt-0.5 select-none text-red-600">❌</span>
+                  <div className="flex-1">
+                    <p className="font-extrabold uppercase tracking-wider text-[10px] text-red-800 mb-1">Peringatan Alamat Wilayah</p>
+                    <p className="text-[11.5px] text-red-700 leading-normal">{validationError}</p>
+                  </div>
+                </div>
+              )}
+
               <button
                 id="finalize-checkout-btn"
                 type="submit"

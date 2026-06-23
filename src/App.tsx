@@ -292,7 +292,12 @@ export default function App() {
           seoTitle: "Qeiza Mall - Belanja Mudah, Cepat, dan Terpercaya",
           seoDescription: "Pusat perbelanjaan online terpercaya Qeiza Mall.",
           contactPhone: "081234567890",
-          contactEmail: "cs@qeizamall.com"
+          contactEmail: "cs@qeizamall.com",
+          bannerBadge: "✦ ESENSI KEANGGUNAN MODERN ✦",
+          bannerTitle: "Kurasi Gaya Hidup \nMinimalis Kreatif",
+          bannerDescription: "Kami mempersembahkan koleksi kurasi eksklusif dengan palet warna timeless dan kualitas material premium. Temukan kesederhanaan bermakna untuk melengkapi ekspresi estetika Anda sehari-hari bersama QEIZA.",
+          bannerCtaText: "JELAJAHI PRODUK",
+          bannerImageUrl: ""
         };
         setSettings(defaultSettings);
         localStorage.setItem("qeiza_fallback_settings", JSON.stringify(defaultSettings));
@@ -510,7 +515,14 @@ export default function App() {
         alert(`Pesanan Berhasil Dibuat!\nNo. Invoice Anda: ${order.invoice}\n\nSistem akan mengarahkan Anda ke WhatsApp untuk memproses pesanan langsung dengan layanan pelanggan Qeiza Mall.`);
 
         // Format phone number for WhatsApp CS (using settings.contactPhone)
-        const csPhone = (settings?.contactPhone || "6282211993344").replace(/[^0-9]/g, "").replace(/^0/, "62");
+        const rawPhone = settings?.contactPhone || "6282211993344";
+        let cleanPhone = rawPhone.replace(/[^0-9]/g, "");
+        if (cleanPhone.startsWith("0")) {
+          cleanPhone = "62" + cleanPhone.slice(1);
+        } else if (!cleanPhone.startsWith("62") && cleanPhone.length > 0) {
+          cleanPhone = "62" + cleanPhone;
+        }
+        const csPhone = cleanPhone || "6282211993344";
         
         // Build beautiful WA formatted invoice text
         const itemsDetail = order.items.map((it: any) => {
@@ -529,11 +541,11 @@ export default function App() {
           `No. WhatsApp: *${order.customerPhone}*\n\n` +
           `📍 *Alamat Pengiriman:*\n${addressStr}\n\n` +
           `📦 *Rincian Pesanan:*\n${itemsDetail}\n\n` +
-          `🚚 *Biaya Pengiriman:*\n${order.shippingCourier} - ${order.shippingOption} (${formatCurrency(order.shippingCost)})\n\n` +
-          `💰 *Total Tagihan:*\n*${formatCurrency(order.total)}*\n\n` +
+          `🚚 *Biaya Pengiriman:*\nDitentukan & dihitung oleh Admin via WhatsApp\n\n` +
+          `💰 *Total Tagihan (Belum Ongkir):*\n*${formatCurrency(order.total)}*\n\n` +
           `💳 *Pilihan Pembayaran:*\n${order.paymentMethod}${order.paymentBank ? ` - ${order.paymentBank}` : ""}\n\n` +
           `📝 *Catatan:* ${order.notes || "-"}\n\n` +
-          `*Langkah Selanjutnya:*\nMohon konfirmasi pesanan saya agar bisa segera dipersiapkan dan dikirim ya Kak. Terima kasih! 🙏`;
+          `*Langkah Selanjutnya:*\nMohon konfirmasi pesanan saya agar bisa segera dipersiapkan, dihitung biaya kirimnya, dan dikirim ya Kak. Terima kasih! 🙏`;
 
         const waUrl = `https://api.whatsapp.com/send?phone=${csPhone}&text=${encodeURIComponent(text)}`;
         if (typeof window !== "undefined") {
@@ -825,7 +837,7 @@ export default function App() {
           
           {/* Logo brand */}
           <div className="flex items-center gap-1 cursor-pointer shrink-0" onClick={() => { setSelectedCategory("Semua"); setSearchQuery(""); }}>
-            <span className="font-extrabold text-zinc-950 text-xl lg:text-2xl tracking-tighter block font-sans uppercase">QEIZA MALL</span>
+            <span className="font-logo font-bold text-zinc-950 text-xl lg:text-2xl tracking-[0.15em] block uppercase">QEIZA MALL</span>
           </div>
 
           {/* Kategori Button Link */}
@@ -941,41 +953,57 @@ export default function App() {
         {/* Middle Area: Hero Banner & Primary Catalogs */}
         <div className="flex-1 flex flex-col gap-6 overflow-hidden">
           
-          {/* 2. HERO BANNER LARGE SLIDESHOW & VIDEO AD AREA (TOKOPEDIA DESIGN) */}
+          {/* 2. CHIC MONOCHROME LIFE CURATION HERO PLACEHOLDER */}
           <section id="hero-slider">
-            <div className="w-full text-white bg-gradient-to-r from-[#8E0E00] via-[#1F1C2C] to-[#01579B] rounded-3xl overflow-hidden shadow-md relative min-h-[220px] p-6 sm:p-10 flex flex-col md:flex-row justify-between items-center gap-6 select-none border border-white/10">
+            <div 
+              style={settings?.bannerImageUrl ? { backgroundImage: `url(${settings.bannerImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : {}}
+              className="w-full text-white bg-zinc-950 rounded-3xl overflow-hidden shadow-sm relative min-h-[220px] p-6 sm:p-10 flex flex-col md:flex-row justify-between items-center gap-6 select-none border border-zinc-800"
+            >
+              {/* Dark overlay if custom background image exists */}
+              {settings?.bannerImageUrl && (
+                <div className="absolute inset-0 bg-black/60 z-0" />
+              )}
               
               {/* Left text column */}
-              <div className="flex-1 space-y-4 relative z-10 max-w-xl text-left">
-                <div className="flex items-center gap-1.5 text-[10px] font-black text-rose-300 tracking-wider">
-                  <div className="w-2 h-2 bg-rose-500 rounded-full animate-ping" />
-                  <span>SPECIAL OFFER UNTUK ANDA</span>
+              <div className="flex-1 space-y-4.5 relative z-10 max-w-xl text-left">
+                <div className="flex items-center gap-2 text-[9px] font-bold text-zinc-400 tracking-[0.2em] uppercase">
+                  <span>✦</span>
+                  <span>{settings?.bannerBadge || "ESENSI KEANGGUNAN MODERN"}</span>
+                  <span>✦</span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight leading-tight">
-                  Selamat datang! Gabung dan temukan Pilihan Produk Terbaik, <span className="text-amber-300 drop-shadow-md">Hanya Untukmu!</span>
+                <h1 className="font-logo text-2xl sm:text-3xl md:text-4xl font-normal tracking-[0.06em] leading-[1.25] text-white whitespace-pre-line">
+                  {settings?.bannerTitle || "Kurasi Gaya Hidup \nMinimalis Kreatif"}
                 </h1>
-                <p className="text-xs text-white/80 max-w-md font-medium leading-relaxed">
-                  Belanja aman, nyaman, dan terjangkau di Qeiza Mall. Nikmati bonus gratis ongkir instan ke seluruh Indonesia khusus pesanan hari ini.
+                <p className="text-[11.5px] text-zinc-400 max-w-md font-medium leading-relaxed">
+                  {settings?.bannerDescription || "Kami mempersembahkan koleksi kurasi eksklusif dengan palet warna timeless dan kualitas material premium. Temukan kesederhanaan bermakna untuk melengkapi ekspresi estetika Anda sehari-hari bersama QEIZA."}
                 </p>
+                <div className="flex items-center gap-4 text-[10px] text-zinc-500 font-bold tracking-wider font-mono">
+                  <span>● JAMINAN ORIGINAL 100%</span>
+                  <span>● LAYANAN DELIVERY AMAN</span>
+                </div>
               </div>
 
-              {/* Right Button/CTA Actions */}
-              <div className="relative shrink-0 flex flex-col items-center justify-center gap-2">
+              {/* Right CTA Button Actions */}
+              <div className="relative shrink-0 flex flex-col items-center justify-center gap-3 z-10">
                 <button 
                   onClick={() => {
                     const el = document.getElementById("product-catalog-anchor");
                     if (el) el.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="bg-[#D32F2F] text-white hover:bg-[#B71C1C] px-8 py-3.5 rounded-xl font-black text-sm tracking-widest shadow-xl scale-100 hover:scale-105 active:scale-95 transition-all cursor-pointer border border-white/20 uppercase"
+                  className="bg-white text-zinc-950 hover:bg-zinc-200 px-8 py-3.5 rounded-xl font-bold text-xs tracking-[0.15em] shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer border border-zinc-300 uppercase shrink-0"
                 >
-                  Gabung Sekarang
+                  {settings?.bannerCtaText || "Jelajahi Produk"}
                 </button>
-                <span className="text-[9px] text-white/60 font-mono font-bold tracking-wider">*Ketentuan promo berlaku</span>
+                <span className="text-[9px] text-zinc-500 font-bold tracking-widest uppercase">Gratis Ongkir Instan</span>
               </div>
 
-              {/* Backglow Ambient layers */}
-              <div className="absolute top-0 right-0 w-72 h-72 bg-[#D32F2F]/20 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute bottom-0 left-12 w-48 h-48 bg-blue-600/10 rounded-full blur-2xl pointer-events-none" />
+              {/* Backglow Ambient layers - Monochrome Dark elegant shades */}
+              {!settings?.bannerImageUrl && (
+                <>
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-zinc-800/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="absolute bottom-0 left-12 w-48 h-48 bg-zinc-900/40 rounded-full blur-2xl pointer-events-none" />
+                </>
+              )}
             </div>
           </section>
 
@@ -1224,7 +1252,7 @@ export default function App() {
           Tanya Admin?
         </div>
         <a
-          href={`https://wa.me/${settings.contactPhone}?text=Halo%20Admin%20Qeiza%20Mall,%20saya%20tertarik%20bertanya%20seputar%20produk%20dan%20order%20yang%20tersedia.`}
+          href={`https://wa.me/${(settings?.contactPhone || "6282211993344").replace(/[^0-9]/g, "").replace(/^0/, "62")}?text=Halo%20Admin%20Qeiza%20Mall,%20saya%20tertarik%20bertanya%20seputar%20produk%20dan%20order%20yang%20tersedia.`}
           target="_blank"
           rel="noopener noreferrer"
           className="w-13 h-13 bg-[#25D366] rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all"
