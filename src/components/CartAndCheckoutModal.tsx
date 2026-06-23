@@ -54,6 +54,34 @@ export default function CartAndCheckoutModal({
   const [shippingRates, setShippingRates] = useState<any[]>([]);
   const [selectedRate, setSelectedRate] = useState<any | null>(null);
 
+  const getFallbackRates = () => {
+    const couriers = settings?.activeCouriers && settings.activeCouriers.length > 0 
+      ? settings.activeCouriers 
+      : ["JNE", "J&T", "SiCepat"];
+    
+    return couriers.map((courier) => {
+      let price = 15000;
+      if (courier.toUpperCase().includes("JNE")) price = 15000;
+      else if (courier.toUpperCase().includes("J&T")) price = 16000;
+      else if (courier.toUpperCase().includes("SICEPAT")) price = 14000;
+      else if (courier.toUpperCase().includes("GOJEK") || courier.toUpperCase().includes("GRAB")) price = 25000;
+      
+      return {
+        courier: courier,
+        service: "Reguler (Manual)",
+        price: price,
+        estimatedDays: "2-4 Hari"
+      };
+    });
+  };
+
+  // Populate standard flat rates immediately on load so the checkout is never blocked
+  useEffect(() => {
+    const fallback = getFallbackRates();
+    setShippingRates(fallback);
+    setSelectedRate(fallback[0]);
+  }, [settings]);
+
   // Payments
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "Transfer Bank" | "QRIS">("Transfer Bank");
   const [selectedBank, setSelectedBank] = useState<string>("");
@@ -84,7 +112,6 @@ export default function CartAndCheckoutModal({
 
   const fetchShippingRates = async () => {
     setLoadingRates(true);
-    setSelectedRate(null);
     try {
       const response = await fetch("/api/shipping/rates", {
         method: "POST",
@@ -95,19 +122,29 @@ export default function CartAndCheckoutModal({
         })
       });
       const data = await response.json();
-      if (data.rates) {
+      if (data.rates && data.rates.length > 0) {
         // Filter rates based on Admin enabled couriers in dashboard!
         const filteredRates = data.rates.filter((rate: any) => 
           settings.activeCouriers.some((activeC) => rate.courier.toLowerCase().includes(activeC.toLowerCase()))
         );
-        setShippingRates(filteredRates);
         if (filteredRates.length > 0) {
-          // pre-select cheapest reg
+          setShippingRates(filteredRates);
           setSelectedRate(filteredRates[0]);
+        } else {
+          const fallback = getFallbackRates();
+          setShippingRates(fallback);
+          if (!selectedRate) setSelectedRate(fallback[0]);
         }
+      } else {
+        const fallback = getFallbackRates();
+        setShippingRates(fallback);
+        if (!selectedRate) setSelectedRate(fallback[0]);
       }
     } catch (err) {
       console.error("Error fetching rates", err);
+      const fallback = getFallbackRates();
+      setShippingRates(fallback);
+      if (!selectedRate) setSelectedRate(fallback[0]);
     } finally {
       setLoadingRates(false);
     }

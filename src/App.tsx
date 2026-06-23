@@ -79,6 +79,22 @@ export const templateStyles = {
   }
 };
 
+const getCategoryEmoji = (cat: string) => {
+  const norm = cat.toLowerCase();
+  if (norm.includes("semua")) return "🔥";
+  if (norm.includes("elektronik") || norm.includes("gadget") || norm.includes("phone")) return "📱";
+  if (norm.includes("baju") || norm.includes("pakaian") || norm.includes("fashion") || norm.includes("kemeja") || norm.includes("celana")) return "👕";
+  if (norm.includes("skincare") || norm.includes("kosmetik") || norm.includes("cantik") || norm.includes("beauty")) return "💄";
+  if (norm.includes("tas") || norm.includes("bag") || norm.includes("outdoor")) return "🎒";
+  if (norm.includes("sepatu") || norm.includes("shoe")) return "👟";
+  if (norm.includes("rumah") || norm.includes("home") || norm.includes("dapur") || norm.includes("kitchen")) return "🏠";
+  if (norm.includes("makanan") || norm.includes("minuman") || norm.includes("food") || norm.includes("snack")) return "😋";
+  if (norm.includes("hobi") || norm.includes("mainan") || norm.includes("toy")) return "🎮";
+  if (norm.includes("otomotif") || norm.includes("motor") || norm.includes("mobil")) return "🚗";
+  if (norm.includes("buku") || norm.includes("book") || norm.includes("tulis")) return "📚";
+  return "📦"; // default product box emoji
+};
+
 export default function App() {
   // Application Data States
   const [products, setProducts] = useState<Product[]>([]);
@@ -713,7 +729,10 @@ export default function App() {
     return matchesSearch && matchesCategory;
   });
 
-  const uniqueCategories: string[] = ["Semua", ...Array.from(new Set(products.map((p) => p.category))).map(String)];
+  const uniqueCategories: string[] = [
+    "Semua", 
+    ...(Array.from(new Set(products.filter(p => p.isActive && p.category && p.category.trim() !== "").map((p) => String(p.category).trim()))) as string[])
+  ];
 
   const formatIDR = (num: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -874,56 +893,24 @@ export default function App() {
       {/* CATEGORY ICON PILLS ROW (SHOPIFY MODERN STYLE SUBBAR) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-5">
         <div className="bg-white border border-zinc-200 rounded-xl p-3 flex items-center gap-2 overflow-x-auto scrollbar-none select-none shadow-xs">
-          <div className="flex items-center gap-3 w-full justify-between min-w-[700px] text-xs">
-            <button 
-              onClick={() => { setSelectedCategory("Semua"); setSearchQuery(""); }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all shrink-0 font-bold ${selectedCategory === "Semua" ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 text-zinc-600 hover:border-zinc-400"}`}
-            >
-              <span className="text-sm">🔥</span>
-              <span>Semua Produk</span>
-            </button>
-            <button 
-              onClick={() => { setSelectedCategory("Elektronik"); setSearchQuery(""); }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all shrink-0 font-bold ${selectedCategory === "Elektronik" ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 text-zinc-600 hover:border-zinc-400"}`}
-            >
-              <span className="text-sm">📱</span>
-              <span>Handphone & Gadget</span>
-            </button>
-            <button 
-              onClick={() => { setSelectedCategory("Pakaian"); setSearchQuery(""); }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all shrink-0 font-bold ${selectedCategory === "Pakaian" ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 text-zinc-600 hover:border-zinc-400"}`}
-            >
-              <span className="text-sm">👕</span>
-              <span>Fashion & Pakaian</span>
-            </button>
-            <button 
-              onClick={() => { setSelectedCategory("Elektronik"); setSearchQuery(""); }}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-zinc-200 hover:border-zinc-400 text-zinc-650 text-xs font-bold transition-all shrink-0"
-            >
-              <span className="text-sm">🔌</span>
-              <span>Kelistrikan & Rumah</span>
-            </button>
-            <button 
-              onClick={() => { setSelectedCategory("Skincare"); setSearchQuery(""); }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all shrink-0 font-bold ${selectedCategory === "Skincare" ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 text-zinc-600 hover:border-zinc-400"}`}
-            >
-              <span className="text-sm">💄</span>
-              <span>Kecantikan & Skincare</span>
-            </button>
-            <button 
-              onClick={() => { setSelectedCategory("Tas"); setSearchQuery(""); }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all shrink-0 font-bold ${selectedCategory === "Tas" ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 text-zinc-600 hover:border-zinc-400"}`}
-            >
-              <span className="text-sm">🎒</span>
-              <span>Tas & Outdoor</span>
-            </button>
-            <button 
-              onClick={() => { setSelectedCategory("Semua"); setSearchQuery(""); }}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-zinc-200 hover:border-zinc-400 text-zinc-650 text-xs font-bold transition-all shrink-0"
-            >
-              <span className="text-sm">💻</span>
-              <span>Komputer & Laptop</span>
-            </button>
+          <div className="flex items-center gap-3 w-full justify-start text-xs overflow-x-auto scrollbar-none">
+            {uniqueCategories.map((cat) => {
+              const isActive = selectedCategory === cat;
+              return (
+                <button 
+                  key={cat}
+                  onClick={() => { setSelectedCategory(cat); setSearchQuery(""); }}
+                  className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg border transition-all shrink-0 font-bold ${
+                    isActive 
+                      ? "border-zinc-950 bg-zinc-950 text-white" 
+                      : "border-zinc-200 text-zinc-650 hover:border-zinc-400 bg-white"
+                  }`}
+                >
+                  <span className="text-sm">{getCategoryEmoji(cat)}</span>
+                  <span>{cat === "Semua" ? "Semua Produk" : cat}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
