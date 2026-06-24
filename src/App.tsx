@@ -160,27 +160,39 @@ export default function App() {
   const fetchAllData = async () => {
     try {
       const pRes = await fetch("/api/products");
+      if (!pRes.ok) throw new Error("Failed to fetch products");
       const productsData = await pRes.json();
+      if (!Array.isArray(productsData)) throw new Error("Products data is not an array");
       setProducts(productsData);
 
       const oRes = await fetch("/api/orders");
+      if (!oRes.ok) throw new Error("Failed to fetch orders");
       const ordersData = await oRes.json();
+      if (!Array.isArray(ordersData)) throw new Error("Orders data is not an array");
       setOrders(ordersData);
 
       const prRes = await fetch("/api/promos");
+      if (!prRes.ok) throw new Error("Failed to fetch promos");
       const promosData = await prRes.json();
+      if (!Array.isArray(promosData)) throw new Error("Promos data is not an array");
       setPromos(promosData);
 
       const sRes = await fetch("/api/settings");
+      if (!sRes.ok) throw new Error("Failed to fetch settings");
       const settingsData = await sRes.json();
+      if (!settingsData || typeof settingsData !== "object") throw new Error("Settings data is invalid");
       setSettings(settingsData);
 
       const bRes = await fetch("/api/blog-posts");
+      if (!bRes.ok) throw new Error("Failed to fetch blog posts");
       const blogData = await bRes.json();
+      if (!Array.isArray(blogData)) throw new Error("Blog data is not an array");
       setBlogPosts(blogData);
 
       const slRes = await fetch("/api/stock-logs");
+      if (!slRes.ok) throw new Error("Failed to fetch stock logs");
       const logsData = await slRes.json();
+      if (!Array.isArray(logsData)) throw new Error("Stock logs data is not an array");
       setStockLogs(logsData);
       
       setIsOfflineMode(false);

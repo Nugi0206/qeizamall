@@ -8,6 +8,8 @@ import fs from "fs";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { Product, Order, Settings, Promo, StockLog, BlogPost, Address } from "./src/types.js";
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs } from "firebase/firestore";
 
 const app = express();
 const PORT = 3000;
@@ -365,444 +367,540 @@ const seedOrders: Order[] = [
   }
 ];
 
-// Initialize DB file
-function initDB() {
-  if (!fs.existsSync(DB_FILE)) {
-    const initialData: DBStructure = {
-      products: seedProducts,
-      orders: seedOrders,
-      settings: defaultSettings,
-      promos: seedPromos,
-      stockLogs: seedStockLogs,
-      blogPosts: seedBlogPosts
-    };
-    fs.writeFileSync(DB_FILE, JSON.stringify(initialData, null, 2));
-    console.log("Database initialized successfully!");
-  } else {
-    // Read and merge any missing fields if exist
-    try {
-      const current = JSON.parse(fs.readFileSync(DB_FILE, "utf-8"));
-      let updated = false;
-      if (!current.products) { current.products = seedProducts; updated = true; }
-      if (!current.orders) { current.orders = seedOrders; updated = true; }
-      if (!current.settings) { current.settings = defaultSettings; updated = true; }
-      if (!current.promos) { current.promos = seedPromos; updated = true; }
-      if (!current.stockLogs) { current.stockLogs = seedStockLogs; updated = true; }
-      if (!current.blogPosts) { current.blogPosts = seedBlogPosts; updated = true; }
-      if (updated) {
-        fs.writeFileSync(DB_FILE, JSON.stringify(current, null, 2));
-      }
-    } catch (e) {
-      console.error("Error reading db, recreating...");
-      const initialData: DBStructure = {
-        products: seedProducts,
-        orders: seedOrders,
-        settings: defaultSettings,
-        promos: seedPromos,
-        stockLogs: seedStockLogs,
-        blogPosts: seedBlogPosts
-      };
-      fs.writeFileSync(DB_FILE, JSON.stringify(initialData, null, 2));
-    }
-  }
-}
+// Initialize Firebase using the client SDK with the local config file
+const configPath = path.join(process.cwd(), "firebase-applet-config.json");
+const firebaseConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+const firebaseApp = initializeApp(firebaseConfig);
+const firestoreDb = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
 
-initDB();
-
-function getDB(): DBStructure {
+// Seeding function to sync local default data to Firestore if empty
+async function seedFirestoreIfNeeded() {
   try {
-    return JSON.parse(fs.readFileSync(DB_FILE, "utf-8"));
-  } catch (e) {
-    initDB();
-    return JSON.parse(fs.readFileSync(DB_FILE, "utf-8"));
+    const productsSnap = await getDocs(collection(firestoreDb, "products"));
+    if (productsSnap.empty) {
+      console.log("[Firebase] Seeding default products to Firestore...");
+      for (const prod of seedProducts) {
+        await setDoc(doc(firestoreDb, "products", prod.id), prod);
+      }
+    }
+
+    const promosSnap = await getDocs(collection(firestoreDb, "promos"));
+    if (promosSnap.empty) {
+      console.log("[Firebase] Seeding default promos to Firestore...");
+      for (const promo of seedPromos) {
+        await setDoc(doc(firestoreDb, "promos", promo.id), promo);
+      }
+    }
+
+    const blogSnap = await getDocs(collection(firestoreDb, "blogPosts"));
+    if (blogSnap.empty) {
+      console.log("[Firebase] Seeding default blog posts to Firestore...");
+      for (const post of seedBlogPosts) {
+        await setDoc(doc(firestoreDb, "blogPosts", post.id), post);
+      }
+    }
+
+    const logsSnap = await getDocs(collection(firestoreDb, "stockLogs"));
+    if (logsSnap.empty) {
+      console.log("[Firebase] Seeding default stock logs to Firestore...");
+      for (const log of seedStockLogs) {
+        await setDoc(doc(firestoreDb, "stockLogs", log.id), log);
+      }
+    }
+
+    const ordersSnap = await getDocs(collection(firestoreDb, "orders"));
+    if (ordersSnap.empty) {
+      console.log("[Firebase] Seeding default orders to Firestore...");
+      for (const ord of seedOrders) {
+        await setDoc(doc(firestoreDb, "orders", ord.id), ord);
+      }
+    }
+
+    const settingsSnap = await getDoc(doc(firestoreDb, "settings", "global"));
+    if (!settingsSnap.exists()) {
+      console.log("[Firebase] Seeding default settings to Firestore...");
+      await setDoc(doc(firestoreDb, "settings", "global"), defaultSettings);
+    }
+    console.log("[Firebase] Firestore initialization and verification complete.");
+  } catch (err) {
+    console.error("[Firebase] Warning: seeding check failed, but database connection remains active:", err);
   }
 }
 
-function saveDB(db: DBStructure) {
-  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+// Call seed check
+seedFirestoreIfNeeded();
+
+// Helper to load settings
+async function getSettings(): Promise<Settings> {
+  const docSnap = await getDoc(doc(firestoreDb, "settings", "global"));
+  if (docSnap.exists()) {
+    return docSnap.data() as Settings;
+  }
+  return defaultSettings;
 }
 
-// REST API Endpoints
+// Helper to load all products
+async function getProducts(): Promise<Product[]> {
+  const querySnapshot = await getDocs(collection(firestoreDb, "products"));
+  const products: Product[] = [];
+  querySnapshot.forEach((doc) => {
+    products.push(doc.data() as Product);
+  });
+  return products;
+}
+
+// REST API Endpoints with live Firestore backend
 
 // 1. Settings
-app.get("/api/settings", (req, res) => {
-  const db = getDB();
-  res.json(db.settings);
+app.get("/api/settings", async (req, res) => {
+  try {
+    const settings = await getSettings();
+    res.json(settings);
+  } catch (err) {
+    console.error("Error fetching settings:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
-app.put("/api/settings", (req, res) => {
-  const db = getDB();
-  db.settings = { ...db.settings, ...req.body };
-  saveDB(db);
-  res.json({ success: true, settings: db.settings });
+app.put("/api/settings", async (req, res) => {
+  try {
+    const current = await getSettings();
+    const updated = { ...current, ...req.body };
+    await setDoc(doc(firestoreDb, "settings", "global"), updated);
+    res.json({ success: true, settings: updated });
+  } catch (err) {
+    console.error("Error saving settings:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // 2. Products
-app.get("/api/products", (req, res) => {
-  const db = getDB();
-  res.json(db.products);
-});
-
-app.post("/api/products", (req, res) => {
-  const db = getDB();
-  const newProduct: Product = {
-    id: `prod-${Date.now()}`,
-    ...req.body,
-    stock: Number(req.body.stock || 0),
-    costPrice: Number(req.body.costPrice || 0),
-    price: Number(req.body.price || 0),
-    promoPrice: req.body.promoPrice ? Number(req.body.promoPrice) : null,
-    weight: Number(req.body.weight || 0),
-    minStock: Number(req.body.minStock || 5),
-    isActive: typeof req.body.isActive === "boolean" ? req.body.isActive : true,
-  };
-
-  db.products.push(newProduct);
-
-  // Record Stock Log
-  const stockLog: StockLog = {
-    id: `log-${Date.now()}`,
-    productId: newProduct.id,
-    productName: newProduct.name,
-    type: "in",
-    quantity: newProduct.stock,
-    reason: "Pendaftaran produk baru",
-    createdAt: new Date().toISOString()
-  };
-  db.stockLogs.unshift(stockLog);
-
-  saveDB(db);
-  res.status(201).json({ success: true, product: newProduct });
-});
-
-app.put("/api/products/:id", (req, res) => {
-  const db = getDB();
-  const index = db.products.findIndex((p) => p.id === req.params.id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Product not found" });
+app.get("/api/products", async (req, res) => {
+  try {
+    const prods = await getProducts();
+    res.json(prods);
+  } catch (err) {
+    console.error("Error fetching products:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
+});
 
-  const oldProduct = db.products[index];
-  const updatedProduct: Product = {
-    ...oldProduct,
-    ...req.body,
-    stock: Number(req.body.stock ?? oldProduct.stock),
-    costPrice: Number(req.body.costPrice ?? oldProduct.costPrice),
-    price: Number(req.body.price ?? oldProduct.price),
-    promoPrice: req.body.promoPrice === null ? null : (req.body.promoPrice ? Number(req.body.promoPrice) : oldProduct.promoPrice),
-    weight: Number(req.body.weight ?? oldProduct.weight),
-    minStock: Number(req.body.minStock ?? oldProduct.minStock),
-  };
+app.post("/api/products", async (req, res) => {
+  try {
+    const newProduct: Product = {
+      id: `prod-${Date.now()}`,
+      ...req.body,
+      stock: Number(req.body.stock || 0),
+      costPrice: Number(req.body.costPrice || 0),
+      price: Number(req.body.price || 0),
+      promoPrice: req.body.promoPrice ? Number(req.body.promoPrice) : null,
+      weight: Number(req.body.weight || 0),
+      minStock: Number(req.body.minStock || 5),
+      isActive: typeof req.body.isActive === "boolean" ? req.body.isActive : true,
+    };
 
-  db.products[index] = updatedProduct;
+    await setDoc(doc(firestoreDb, "products", newProduct.id), newProduct);
 
-  // Handle stock movement logs if discrepancy occurs
-  const stockDiff = updatedProduct.stock - oldProduct.stock;
-  if (stockDiff !== 0) {
+    // Record Stock Log
     const stockLog: StockLog = {
       id: `log-${Date.now()}`,
-      productId: updatedProduct.id,
-      productName: updatedProduct.name,
-      type: stockDiff > 0 ? "in" : "out",
-      quantity: Math.abs(stockDiff),
-      reason: req.body.stockReason || "Koreksi stok manual oleh administrator",
+      productId: newProduct.id,
+      productName: newProduct.name,
+      type: "in",
+      quantity: newProduct.stock,
+      reason: "Pendaftaran produk baru",
       createdAt: new Date().toISOString()
     };
-    db.stockLogs.unshift(stockLog);
-  }
+    await setDoc(doc(firestoreDb, "stockLogs", stockLog.id), stockLog);
 
-  saveDB(db);
-  res.json({ success: true, product: updatedProduct });
+    res.status(201).json({ success: true, product: newProduct });
+  } catch (err) {
+    console.error("Error adding product:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
-app.delete("/api/products/:id", (req, res) => {
-  const db = getDB();
-  const index = db.products.findIndex((p) => p.id === req.params.id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Product not found" });
+app.put("/api/products/:id", async (req, res) => {
+  try {
+    const productRef = doc(firestoreDb, "products", req.params.id);
+    const productSnap = await getDoc(productRef);
+    if (!productSnap.exists()) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    const oldProduct = productSnap.data() as Product;
+    const updatedProduct: Product = {
+      ...oldProduct,
+      ...req.body,
+      stock: Number(req.body.stock ?? oldProduct.stock),
+      costPrice: Number(req.body.costPrice ?? oldProduct.costPrice),
+      price: Number(req.body.price ?? oldProduct.price),
+      promoPrice: req.body.promoPrice === null ? null : (req.body.promoPrice ? Number(req.body.promoPrice) : oldProduct.promoPrice),
+      weight: Number(req.body.weight ?? oldProduct.weight),
+      minStock: Number(req.body.minStock ?? oldProduct.minStock),
+    };
+
+    await setDoc(productRef, updatedProduct);
+
+    // Handle stock movement logs if discrepancy occurs
+    const stockDiff = updatedProduct.stock - oldProduct.stock;
+    if (stockDiff !== 0) {
+      const stockLog: StockLog = {
+        id: `log-${Date.now()}`,
+        productId: updatedProduct.id,
+        productName: updatedProduct.name,
+        type: stockDiff > 0 ? "in" : "out",
+        quantity: Math.abs(stockDiff),
+        reason: req.body.stockReason || "Koreksi stok manual oleh administrator",
+        createdAt: new Date().toISOString()
+      };
+      await setDoc(doc(firestoreDb, "stockLogs", stockLog.id), stockLog);
+    }
+
+    res.json({ success: true, product: updatedProduct });
+  } catch (err) {
+    console.error("Error updating product:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
+});
 
-  // Soft delete / Filter out
-  const removed = db.products.splice(index, 1)[0];
+app.delete("/api/products/:id", async (req, res) => {
+  try {
+    const productRef = doc(firestoreDb, "products", req.params.id);
+    const productSnap = await getDoc(productRef);
+    if (!productSnap.exists()) {
+      return res.status(404).json({ error: "Product not found" });
+    }
 
-  // Stock Log for wipe out
-  const stockLog: StockLog = {
-    id: `log-${Date.now()}`,
-    productId: removed.id,
-    productName: removed.name,
-    type: "out",
-    quantity: removed.stock,
-    reason: "Penghapusan produk (stok ditiadakan)",
-    createdAt: new Date().toISOString()
-  };
-  db.stockLogs.unshift(stockLog);
+    const removed = productSnap.data() as Product;
+    await deleteDoc(productRef);
 
-  saveDB(db);
-  res.json({ success: true, message: "Product deleted" });
+    // Stock Log for wipe out
+    const stockLog: StockLog = {
+      id: `log-${Date.now()}`,
+      productId: removed.id,
+      productName: removed.name,
+      type: "out",
+      quantity: removed.stock,
+      reason: "Penghapusan produk (stok ditiadakan)",
+      createdAt: new Date().toISOString()
+    };
+    await setDoc(doc(firestoreDb, "stockLogs", stockLog.id), stockLog);
+
+    res.json({ success: true, message: "Product deleted" });
+  } catch (err) {
+    console.error("Error deleting product:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // 3. Orders
-app.get("/api/orders", (req, res) => {
-  const db = getDB();
-  res.json(db.orders);
-});
-
-app.post("/api/orders", (req, res) => {
-  const db = getDB();
-
-  // Create Invoice number (INV-YYYYMMDD-XXXX)
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const dd = String(today.getDate()).padStart(2, "0");
-  const prefix = `INV-${yyyy}${mm}${dd}`;
-
-  const countToday = db.orders.filter(o => o.invoice.startsWith(prefix)).length;
-  const seqSuffix = String(countToday + 1).padStart(4, "0");
-  const invoiceNum = `${prefix}-${seqSuffix}`;
-
-  const newOrder: Order = {
-    id: `ord-${Date.now()}`,
-    invoice: invoiceNum,
-    createdAt: new Date().toISOString(),
-    customerName: req.body.customerName,
-    customerPhone: req.body.customerPhone,
-    address: req.body.address,
-    items: req.body.items,
-    shippingCourier: req.body.shippingCourier,
-    shippingCost: Number(req.body.shippingCost || 0),
-    shippingOption: req.body.shippingOption || "REG",
-    estimatedDays: req.body.estimatedDays || "2-3 Hari",
-    paymentMethod: req.body.paymentMethod,
-    paymentBank: req.body.paymentBank || null,
-    paymentStatus: req.body.paymentMethod === "COD" ? "unpaid" : "unpaid",
-    status: "pending",
-    totalWeight: Number(req.body.totalWeight || 0),
-    subtotal: Number(req.body.subtotal || 0),
-    discountAmount: Number(req.body.discountAmount || 0),
-    total: Number(req.body.total || 0),
-    notes: req.body.notes || "",
-    trackingNo: null,
-    voucherCode: req.body.voucherCode || null
-  };
-
-  db.orders.unshift(newOrder);
-
-  // Decrement Stock & create log for each item
-  newOrder.items.forEach(item => {
-    const pIdx = db.products.findIndex(p => p.id === item.productId);
-    if (pIdx !== -1) {
-      const p = db.products[pIdx];
-      p.stock = Math.max(0, p.stock - item.quantity);
-
-      const stockLog: StockLog = {
-        id: `log-${Date.now()}-${item.productId}`,
-        productId: p.id,
-        productName: p.name,
-        type: "out",
-        quantity: item.quantity,
-        reason: `Pembelian online, Invoice #${newOrder.invoice}`,
-        createdAt: new Date().toISOString()
-      };
-      db.stockLogs.unshift(stockLog);
-    }
-  });
-
-  saveDB(db);
-  res.status(201).json({ success: true, order: newOrder });
-});
-
-app.put("/api/orders/:id", (req, res) => {
-  const db = getDB();
-  const index = db.orders.findIndex(o => o.id === req.params.id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Order not found" });
+app.get("/api/orders", async (req, res) => {
+  try {
+    const ordersSnapshot = await getDocs(collection(firestoreDb, "orders"));
+    const orders: Order[] = [];
+    ordersSnapshot.forEach((doc) => {
+      orders.push(doc.data() as Order);
+    });
+    // Sort by createdAt descending
+    orders.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    res.json(orders);
+  } catch (err) {
+    console.error("Error fetching orders:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
+});
 
-  const oldOrder = db.orders[index];
-  const updatedOrder: Order = {
-    ...oldOrder,
-    ...req.body
-  };
+app.post("/api/orders", async (req, res) => {
+  try {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    const prefix = `INV-${yyyy}${mm}${dd}`;
 
-  // If status changed to cancelled of failed, retrieve stocks back
-  if ((updatedOrder.status === "cancelled" || updatedOrder.status === "failed") &&
-      (oldOrder.status !== "cancelled" && oldOrder.status !== "failed")) {
-    updatedOrder.items.forEach(item => {
-      const pIdx = db.products.findIndex(p => p.id === item.productId);
-      if (pIdx !== -1) {
-        const p = db.products[pIdx];
-        p.stock += item.quantity;
+    // Fetch today's orders to calculate sequence suffix
+    const ordersSnapshot = await getDocs(collection(firestoreDb, "orders"));
+    const orders: Order[] = [];
+    ordersSnapshot.forEach((doc) => {
+      orders.push(doc.data() as Order);
+    });
+    const countToday = orders.filter(o => o.invoice && o.invoice.startsWith(prefix)).length;
+    const seqSuffix = String(countToday + 1).padStart(4, "0");
+    const invoiceNum = `${prefix}-${seqSuffix}`;
+
+    const newOrder: Order = {
+      id: `ord-${Date.now()}`,
+      invoice: invoiceNum,
+      createdAt: new Date().toISOString(),
+      customerName: req.body.customerName,
+      customerPhone: req.body.customerPhone,
+      address: req.body.address,
+      items: req.body.items,
+      shippingCourier: req.body.shippingCourier,
+      shippingCost: Number(req.body.shippingCost || 0),
+      shippingOption: req.body.shippingOption || "REG",
+      estimatedDays: req.body.estimatedDays || "2-3 Hari",
+      paymentMethod: req.body.paymentMethod,
+      paymentBank: req.body.paymentBank || null,
+      paymentStatus: "unpaid",
+      status: "pending",
+      totalWeight: Number(req.body.totalWeight || 0),
+      subtotal: Number(req.body.subtotal || 0),
+      discountAmount: Number(req.body.discountAmount || 0),
+      total: Number(req.body.total || 0),
+      notes: req.body.notes || "",
+      trackingNo: null,
+      voucherCode: req.body.voucherCode || null
+    };
+
+    await setDoc(doc(firestoreDb, "orders", newOrder.id), newOrder);
+
+    // Decrement Stock & create log for each item
+    for (const item of newOrder.items) {
+      const pRef = doc(firestoreDb, "products", item.productId);
+      const pSnap = await getDoc(pRef);
+      if (pSnap.exists()) {
+        const p = pSnap.data() as Product;
+        p.stock = Math.max(0, p.stock - item.quantity);
+        await setDoc(pRef, p);
 
         const stockLog: StockLog = {
           id: `log-${Date.now()}-${item.productId}`,
           productId: p.id,
           productName: p.name,
-          type: "in",
+          type: "out",
           quantity: item.quantity,
-          reason: `Pembatalan order, Invoice #${updatedOrder.invoice}`,
+          reason: `Pembelian online, Invoice #${newOrder.invoice}`,
           createdAt: new Date().toISOString()
         };
-        db.stockLogs.unshift(stockLog);
+        await setDoc(doc(firestoreDb, "stockLogs", stockLog.id), stockLog);
       }
-    });
-  }
+    }
 
-  db.orders[index] = updatedOrder;
-  saveDB(db);
-  res.json({ success: true, order: updatedOrder });
+    res.status(201).json({ success: true, order: newOrder });
+  } catch (err) {
+    console.error("Error adding order:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
-app.delete("/api/orders/:id", (req, res) => {
-  const db = getDB();
-  const index = db.orders.findIndex(o => o.id === req.params.id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Order not found" });
-  }
+app.put("/api/orders/:id", async (req, res) => {
+  try {
+    const orderRef = doc(firestoreDb, "orders", req.params.id);
+    const orderSnap = await getDoc(orderRef);
+    if (!orderSnap.exists()) {
+      return res.status(404).json({ error: "Order not found" });
+    }
 
-  db.orders.splice(index, 1);
-  saveDB(db);
-  res.json({ success: true });
+    const oldOrder = orderSnap.data() as Order;
+    const updatedOrder: Order = {
+      ...oldOrder,
+      ...req.body
+    };
+
+    // If status changed to cancelled or failed, retrieve stocks back
+    if ((updatedOrder.status === "cancelled" || updatedOrder.status === "failed") &&
+        (oldOrder.status !== "cancelled" && oldOrder.status !== "failed")) {
+      for (const item of updatedOrder.items) {
+        const pRef = doc(firestoreDb, "products", item.productId);
+        const pSnap = await getDoc(pRef);
+        if (pSnap.exists()) {
+          const p = pSnap.data() as Product;
+          p.stock += item.quantity;
+          await setDoc(pRef, p);
+
+          const stockLog: StockLog = {
+            id: `log-${Date.now()}-${item.productId}`,
+            productId: p.id,
+            productName: p.name,
+            type: "in",
+            quantity: item.quantity,
+            reason: `Pembatalan order, Invoice #${updatedOrder.invoice}`,
+            createdAt: new Date().toISOString()
+          };
+          await setDoc(doc(firestoreDb, "stockLogs", stockLog.id), stockLog);
+        }
+      }
+    }
+
+    await setDoc(orderRef, updatedOrder);
+    res.json({ success: true, order: updatedOrder });
+  } catch (err) {
+    console.error("Error updating order:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.delete("/api/orders/:id", async (req, res) => {
+  try {
+    await deleteDoc(doc(firestoreDb, "orders", req.params.id));
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error deleting order:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // 4. Promos
-app.get("/api/promos", (req, res) => {
-  const db = getDB();
-  res.json(db.promos);
-});
-
-app.post("/api/promos", (req, res) => {
-  const db = getDB();
-  const isEditing = req.body.id;
-
-  if (isEditing) {
-    const idx = db.promos.findIndex(p => p.id === req.body.id);
-    if (idx !== -1) {
-      db.promos[idx] = {
-        ...db.promos[idx],
-        ...req.body,
-        value: Number(req.body.value),
-        minPurchase: Number(req.body.minPurchase)
-      };
-      saveDB(db);
-      return res.json({ success: true, promo: db.promos[idx] });
-    }
+app.get("/api/promos", async (req, res) => {
+  try {
+    const querySnapshot = await getDocs(collection(firestoreDb, "promos"));
+    const promos: Promo[] = [];
+    querySnapshot.forEach((doc) => {
+      promos.push(doc.data() as Promo);
+    });
+    res.json(promos);
+  } catch (err) {
+    console.error("Error fetching promos:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-
-  const newPromo: Promo = {
-    id: `prm-${Date.now()}`,
-    code: req.body.code.toUpperCase(),
-    type: req.body.type,
-    value: Number(req.body.value || 0),
-    minPurchase: Number(req.body.minPurchase || 0),
-    isActive: typeof req.body.isActive === "boolean" ? req.body.isActive : true,
-    description: req.body.description || ""
-  };
-
-  db.promos.push(newPromo);
-  saveDB(db);
-  res.status(201).json({ success: true, promo: newPromo });
 });
 
-app.delete("/api/promos/:id", (req, res) => {
-  const db = getDB();
-  db.promos = db.promos.filter(p => p.id !== req.params.id);
-  saveDB(db);
-  res.json({ success: true });
+app.post("/api/promos", async (req, res) => {
+  try {
+    const isEditing = req.body.id;
+
+    if (isEditing) {
+      const promoRef = doc(firestoreDb, "promos", req.body.id);
+      const promoSnap = await getDoc(promoRef);
+      if (promoSnap.exists()) {
+        const updatedPromo = {
+          ...promoSnap.data(),
+          ...req.body,
+          value: Number(req.body.value),
+          minPurchase: Number(req.body.minPurchase)
+        };
+        await setDoc(promoRef, updatedPromo);
+        return res.json({ success: true, promo: updatedPromo });
+      }
+    }
+
+    const newPromo: Promo = {
+      id: `prm-${Date.now()}`,
+      code: req.body.code.toUpperCase(),
+      type: req.body.type,
+      value: Number(req.body.value || 0),
+      minPurchase: Number(req.body.minPurchase || 0),
+      isActive: typeof req.body.isActive === "boolean" ? req.body.isActive : true,
+      description: req.body.description || ""
+    };
+
+    await setDoc(doc(firestoreDb, "promos", newPromo.id), newPromo);
+    res.status(201).json({ success: true, promo: newPromo });
+  } catch (err) {
+    console.error("Error saving promo:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.delete("/api/promos/:id", async (req, res) => {
+  try {
+    await deleteDoc(doc(firestoreDb, "promos", req.params.id));
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error deleting promo:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // 5. Stock Logs
-app.get("/api/stock-logs", (req, res) => {
-  const db = getDB();
-  res.json(db.stockLogs);
+app.get("/api/stock-logs", async (req, res) => {
+  try {
+    const querySnapshot = await getDocs(collection(firestoreDb, "stockLogs"));
+    const logs: StockLog[] = [];
+    querySnapshot.forEach((doc) => {
+      logs.push(doc.data() as StockLog);
+    });
+    logs.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    res.json(logs);
+  } catch (err) {
+    console.error("Error fetching stock logs:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // 6. Blogs
-app.get("/api/blog-posts", (req, res) => {
-  const db = getDB();
-  res.json(db.blogPosts);
-});
-
-app.get("/api/blog", (req, res) => {
-  const db = getDB();
-  res.json(db.blogPosts);
-});
-
-app.post("/api/blog-posts", (req, res) => {
-  const db = getDB();
-  const isEditing = req.body.id;
-
-  if (isEditing) {
-    const idx = db.blogPosts.findIndex(b => b.id === req.body.id);
-    if (idx !== -1) {
-      db.blogPosts[idx] = {
-        ...db.blogPosts[idx],
-        ...req.body,
-        slug: req.body.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
-      };
-      saveDB(db);
-      return res.json({ success: true, post: db.blogPosts[idx] });
-    }
+app.get("/api/blog-posts", async (req, res) => {
+  try {
+    const querySnapshot = await getDocs(collection(firestoreDb, "blogPosts"));
+    const posts: BlogPost[] = [];
+    querySnapshot.forEach((doc) => {
+      posts.push(doc.data() as BlogPost);
+    });
+    posts.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    res.json(posts);
+  } catch (err) {
+    console.error("Error fetching blog posts:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-
-  const newPost: BlogPost = {
-    id: `blg-${Date.now()}`,
-    title: req.body.title,
-    content: req.body.content,
-    imageUrl: req.body.imageUrl || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=500&q=80",
-    slug: req.body.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
-    createdAt: new Date().toISOString()
-  };
-
-  db.blogPosts.unshift(newPost);
-  saveDB(db);
-  res.status(201).json({ success: true, post: newPost });
 });
 
-app.post("/api/blog", (req, res) => {
-  const db = getDB();
-  const isEditing = req.body.id;
-
-  if (isEditing) {
-    const idx = db.blogPosts.findIndex(b => b.id === req.body.id);
-    if (idx !== -1) {
-      db.blogPosts[idx] = {
-        ...db.blogPosts[idx],
-        ...req.body,
-        slug: req.body.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
-      };
-      saveDB(db);
-      return res.json({ success: true, post: db.blogPosts[idx] });
-    }
+app.get("/api/blog", async (req, res) => {
+  try {
+    const querySnapshot = await getDocs(collection(firestoreDb, "blogPosts"));
+    const posts: BlogPost[] = [];
+    querySnapshot.forEach((doc) => {
+      posts.push(doc.data() as BlogPost);
+    });
+    posts.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    res.json(posts);
+  } catch (err) {
+    console.error("Error fetching blog posts:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-
-  const newPost: BlogPost = {
-    id: `blg-${Date.now()}`,
-    title: req.body.title,
-    content: req.body.content,
-    imageUrl: req.body.imageUrl || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=500&q=80",
-    slug: req.body.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
-    createdAt: new Date().toISOString()
-  };
-
-  db.blogPosts.unshift(newPost);
-  saveDB(db);
-  res.status(201).json({ success: true, post: newPost });
 });
 
-app.delete("/api/blog-posts/:id", (req, res) => {
-  const db = getDB();
-  db.blogPosts = db.blogPosts.filter(b => b.id !== req.params.id);
-  saveDB(db);
-  res.json({ success: true });
-});
+const handleBlogPostSave = async (req: express.Request, res: express.Response) => {
+  try {
+    const isEditing = req.body.id;
 
-app.delete("/api/blog/:id", (req, res) => {
-  const db = getDB();
-  db.blogPosts = db.blogPosts.filter(b => b.id !== req.params.id);
-  saveDB(db);
-  res.json({ success: true });
-});
+    if (isEditing) {
+      const postRef = doc(firestoreDb, "blogPosts", req.body.id);
+      const postSnap = await getDoc(postRef);
+      if (postSnap.exists()) {
+        const updatedPost = {
+          ...postSnap.data(),
+          ...req.body,
+          slug: req.body.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+        };
+        await setDoc(postRef, updatedPost);
+        return res.json({ success: true, post: updatedPost });
+      }
+    }
+
+    const newPost: BlogPost = {
+      id: `blg-${Date.now()}`,
+      title: req.body.title,
+      content: req.body.content,
+      imageUrl: req.body.imageUrl || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=500&q=80",
+      slug: req.body.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+      createdAt: new Date().toISOString()
+    };
+
+    await setDoc(doc(firestoreDb, "blogPosts", newPost.id), newPost);
+    res.status(201).json({ success: true, post: newPost });
+  } catch (err) {
+    console.error("Error saving blog post:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+app.post("/api/blog-posts", handleBlogPostSave);
+app.post("/api/blog", handleBlogPostSave);
+
+const handleBlogPostDelete = async (req: express.Request, res: express.Response) => {
+  try {
+    await deleteDoc(doc(firestoreDb, "blogPosts", req.params.id));
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error deleting blog post:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+app.delete("/api/blog-posts/:id", handleBlogPostDelete);
+app.delete("/api/blog/:id", handleBlogPostDelete);
 
 // Live shipping courier simulation rate calculations for Biteship & Rajaongkir
 app.post("/api/shipping/rates", (req, res) => {

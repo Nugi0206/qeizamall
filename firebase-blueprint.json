@@ -1,0 +1,152 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Store items sold on Qeiza Mall",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "sku": { "type": "string" },
+        "barcode": { "type": "string" },
+        "description": { "type": "string" },
+        "costPrice": { "type": "number" },
+        "price": { "type": "number" },
+        "promoPrice": { "type": "number" },
+        "weight": { "type": "number" },
+        "stock": { "type": "number" },
+        "minStock": { "type": "number" },
+        "images": { "type": "array" },
+        "videoUrl": { "type": "string" },
+        "adVideoUrl": { "type": "string" },
+        "colors": { "type": "array" },
+        "sizes": { "type": "array" },
+        "discount": { "type": "number" },
+        "isActive": { "type": "boolean" },
+        "label": { "type": "string" },
+        "category": { "type": "string" },
+        "subCategory": { "type": "string" }
+      },
+      "required": ["id", "name", "sku", "price", "stock"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer purchase orders",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "invoice": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "address": { "type": "object" },
+        "items": { "type": "array" },
+        "shippingCourier": { "type": "string" },
+        "shippingCost": { "type": "number" },
+        "shippingOption": { "type": "string" },
+        "estimatedDays": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "paymentBank": { "type": "string" },
+        "paymentStatus": { "type": "string" },
+        "status": { "type": "string" },
+        "totalWeight": { "type": "number" },
+        "subtotal": { "type": "number" },
+        "discountAmount": { "type": "number" },
+        "total": { "type": "number" },
+        "notes": { "type": "string" },
+        "trackingNo": { "type": "string" },
+        "trackingImage": { "type": "string" },
+        "paymentProof": { "type": "string" },
+        "voucherCode": { "type": "string" }
+      },
+      "required": ["id", "invoice", "createdAt", "customerName", "customerPhone", "items", "total"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "App settings and configs",
+      "type": "object",
+      "properties": {
+        "logoUrl": { "type": "string" },
+        "heroBanners": { "type": "array" },
+        "aboutText": { "type": "string" },
+        "warehouseAddress": { "type": "object" },
+        "activeCouriers": { "type": "array" },
+        "activePayments": { "type": "object" },
+        "seoTitle": { "type": "string" },
+        "seoDescription": { "type": "string" },
+        "contactPhone": { "type": "string" },
+        "contactEmail": { "type": "string" }
+      }
+    },
+    "Promo": {
+      "title": "Promo",
+      "description": "Voucher promo codes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "type": { "type": "string" },
+        "value": { "type": "number" },
+        "minPurchase": { "type": "number" },
+        "isActive": { "type": "boolean" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "code", "type", "value", "isActive"]
+    },
+    "StockLog": {
+      "title": "StockLog",
+      "description": "Logs of product stock modifications",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "type": { "type": "string" },
+        "quantity": { "type": "number" },
+        "reason": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "productId", "type", "quantity", "createdAt"]
+    },
+    "BlogPost": {
+      "title": "BlogPost",
+      "description": "Marketing articles and updates",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "slug": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "content", "slug", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Products catalog collection"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Orders collection"
+    },
+    "/settings/{settingId}": {
+      "schema": "Settings",
+      "description": "Global settings configuration doc"
+    },
+    "/promos/{promoId}": {
+      "schema": "Promo",
+      "description": "Promos list"
+    },
+    "/stockLogs/{logId}": {
+      "schema": "StockLog",
+      "description": "Stock change logs"
+    },
+    "/blogPosts/{postId}": {
+      "schema": "BlogPost",
+      "description": "Articles collection"
+    }
+  }
+}
