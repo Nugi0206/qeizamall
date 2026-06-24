@@ -779,12 +779,6 @@ export default function App() {
   if (viewMode === "admin") {
     return (
       <div className="flex flex-col min-h-screen">
-        {isOfflineMode && (
-          <div className="bg-amber-500 text-white text-xs font-bold px-4 py-2.5 text-center flex items-center justify-center gap-1.5 z-50 shadow-sm leading-normal">
-            <span>⚠️</span>
-            <span><strong>Mode Demo Offline Aktif</strong>: Server API Express tidak terdeteksi (aplikasi berjalan serverless/static di hosting ini). Semua data disimpan di peramban Anda (localStorage).</span>
-          </div>
-        )}
         <AdminDashboard 
           products={products}
           orders={orders}
@@ -818,13 +812,6 @@ export default function App() {
 
   return (
     <div className={`min-h-screen ${st.bg} ${st.fontClass} ${st.textPrimary} transition-all duration-300 scroll-smooth leading-normal relative select-none`}>
-      
-      {isOfflineMode && (
-        <div className="bg-amber-500 text-white text-xs font-bold px-4 py-2.5 text-center flex items-center justify-center gap-1.5 z-50 relative shadow-sm leading-normal">
-          <span>⚠️</span>
-          <span><strong>Mode Demo Offline Aktif</strong>: Gagal terhubung ke API Server (berjalan serverless/static di hosting ini). Transaksi Anda disimpan lokal di peramban ini.</span>
-        </div>
-      )}
       
       {/* 0. TOPMOST ANNOUNCEMENT BAR */}
       <div className="bg-zinc-900 text-zinc-300 border-b border-zinc-800 text-[10px] py-2 px-4 hidden lg:block select-none tracking-widest font-medium uppercase text-center">
@@ -1258,50 +1245,11 @@ export default function App() {
 
       </main>
 
-      {/* 8. FLOATING WHATSAPP CHAT TRIGGERS WITH PAPERS MOCK */}
-      <div className="fixed bottom-6 right-6 z-45 flex items-center gap-3">
-        <div className={`bg-white dark:bg-slate-900 px-3.5 py-1.5 rounded-2xl shadow-lg border ${st.border} text-[10.5px] font-bold ${st.textPrimary} hidden md:block`}>
-          Tanya Admin?
-        </div>
-        <a
-          href={`https://wa.me/${(settings?.contactPhone || "6282211993344").replace(/[^0-9]/g, "").replace(/^0/, "62")}?text=Halo%20Admin%20Qeiza%20Mall,%20saya%20tertarik%20bertanya%20seputar%20produk%20dan%20order%20yang%20tersedia.`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-13 h-13 bg-[#25D366] rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all"
-          title="Hubungi Customer Support Kami"
-        >
-          <svg className="w-6.5 h-6.5 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884 0 2.225.584 3.914 1.517 5.514l-.955 3.486 3.737-.981z"/>
-          </svg>
-        </a>
-      </div>
+
 
       {/* 9. PREMIUM COMPACT MINI FOOTER */}
-      <footer className={`${st.footerBg} py-6 px-8 flex flex-col sm:flex-row items-center justify-between text-[11px] font-semibold transition-all duration-300`}>
+      <footer className={`${st.footerBg} py-6 px-8 flex items-center justify-center text-center text-[11px] font-semibold transition-all duration-300`}>
         <p>© 2024 Qeiza Mall - Official Store. All Rights Reserved.</p>
-        <div className="flex items-center gap-6 mt-3 sm:mt-0">
-          <a href="#" className={`hover:${st.footerTextPrimary} transition-colors`}>Metode Pembayaran</a>
-          <a href="#" className={`hover:${st.footerTextPrimary} transition-colors`}>Kebijakan Privasi</a>
-          <a href="#" className={`hover:${st.footerTextPrimary} transition-colors`}>Syarat & Ketentuan</a>
-          <button 
-            type="button"
-            onClick={() => {
-              setViewMode("admin");
-              if (typeof window !== "undefined") {
-                const url = new URL(window.location.href);
-                url.searchParams.set("page", "admin");
-                window.history.pushState({}, "", url.toString());
-              }
-            }}
-            className={`hover:${st.footerTextPrimary} transition-colors cursor-pointer text-zinc-400/80 font-bold`}
-          >
-            Portal ERP
-          </button>
-          <div className="flex items-center gap-1.5 ml-2">
-            <span className="text-xs">🇮🇩</span>
-            <span>IDN | IDR</span>
-          </div>
-        </div>
       </footer>
 
       {/* DYNAMIC BACKDROP DIALOG MODALS SECTIONS */}
