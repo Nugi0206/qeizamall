@@ -25,6 +25,9 @@ export interface Product {
   label: "baru" | "bestseller" | "promo" | "biasa";
   category: string;
   subCategory: string | null;
+  isMall?: boolean;
+  shippingCity?: string;
+  colorImages?: Record<string, string>; // Maps a color name to its variant base64/URL photo
 }
 
 export interface Address {
@@ -117,6 +120,12 @@ export interface Settings {
   bannerDescription?: string;
   bannerCtaText?: string;
   bannerImageUrl?: string;
+  newArrivalTitle?: string;
+  newArrivalBadge?: string;
+  collectionTitle?: string;
+  collectionBadge?: string;
+  flashSaleProductIds?: string[];
+  reviews?: { id: string; name: string; stars: number; text: string; product: string; }[];
 }
 
 export interface Promo {

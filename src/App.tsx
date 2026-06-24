@@ -933,8 +933,12 @@ export default function App() {
         <aside className="w-full lg:w-56 shrink-0 flex flex-col gap-4">
           <div className="rounded-xl p-5 bg-zinc-900 text-white relative overflow-hidden min-h-[160px] flex flex-col justify-between shadow-xs border border-zinc-850">
             <div className="relative z-10">
-              <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1.5">New Arrival</p>
-              <h4 className="text-base font-extrabold leading-tight mb-3">Gaya Premium Setiap Hari</h4>
+              <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1.5">
+                {settings?.newArrivalBadge || "New Arrival"}
+              </p>
+              <h4 className="text-base font-extrabold leading-tight mb-3">
+                {settings?.newArrivalTitle || "Gaya Premium Setiap Hari"}
+              </h4>
               <button 
                 onClick={() => {
                   const el = document.getElementById("product-catalog-anchor");
@@ -942,7 +946,7 @@ export default function App() {
                 }}
                 className="text-[10px] font-bold underline underline-offset-4 hover:text-zinc-300 transition-colors cursor-pointer tracking-wider uppercase"
               >
-                LIHAT KOLEKSI
+                {settings?.collectionBadge || "LIHAT KOLEKSI"}
               </button>
             </div>
             <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
@@ -1033,9 +1037,12 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Flash Sale Grid (filters products labeled "promo") */}
+              {/* Flash Sale Grid (filters products labeled "promo" or chosen custom products) */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5">
-                {products.filter(p => p.label === "promo").slice(0, 5).map(prod => (
+                {((settings?.flashSaleProductIds && settings.flashSaleProductIds.length > 0)
+                  ? products.filter(p => settings.flashSaleProductIds.includes(p.id))
+                  : products.filter(p => p.label === "promo").slice(0, 5)
+                ).map(prod => (
                   <div 
                     id={`flash-sale-product-card-${prod.id}`}
                     key={prod.id} 
@@ -1143,32 +1150,22 @@ export default function App() {
             <h3 className={`text-xs font-bold ${st.textSecondary} uppercase tracking-widest border-b ${st.border} pb-1.5`}>Ulasan Pembeli Puas</h3>
             
             <div className={`grid grid-cols-1 md:grid-cols-3 gap-4 text-[11px] ${st.textSecondary} font-semibold`}>
-              <div className={`${st.cardBg} p-4 rounded-2xl border ${st.border} shadow-xs space-y-2`}>
-                <div className="flex gap-0.5 text-amber-500 text-[10px]">★★★★★</div>
-                <p className="leading-relaxed">“Sangat puas berbelanja di Qeiza Mall! Pengiriman cepat, kemasan rapi bubble wrap tebal.”</p>
-                <div>
-                  <strong className={`${st.textPrimary} block text-xs`}>Dewi Lestari</strong>
-                  <span className={`text-[9px] ${st.textSecondary} block font-mono`}>Beli: Kemeja Linen Sage</span>
+              {(settings?.reviews || [
+                { id: "rev-1", name: "Anisa Rahmawati", stars: 5, text: "Bahan kemeja linennya adem banget, pas di badan, jahitan rapi banget. Pengiriman cepat cuma sehari sampai Jakarta! Bakal langganan terus di Qeiza Mall.", product: "Kemeja Linen Premium" },
+                { id: "rev-2", name: "Budi Santoso", stars: 5, text: "Sandal slide-nya empuk dan nyaman dipakai harian. Seller responsif dan verifikasi mall-nya bikin percaya belanja di sini.", product: "Sandal Slide Ergo" },
+                { id: "rev-3", name: "Dewi Lestari", stars: 5, text: "Produk kecantikannya original 100%, ada barcode verifikasi resmi. Packaging tebal pakai bubble wrap ganda gratis.", product: "Skincare Glow Serum" }
+              ]).map((rev: any) => (
+                <div key={rev.id} className={`${st.cardBg} p-4 rounded-2xl border ${st.border} shadow-xs space-y-2`}>
+                  <div className="flex gap-0.5 text-amber-500 text-[10px]">
+                    {Array.from({ length: rev.stars || 5 }).map((_, idx) => "★").join("")}
+                  </div>
+                  <p className="leading-relaxed">“{rev.text}”</p>
+                  <div>
+                    <strong className={`${st.textPrimary} block text-xs`}>{rev.name}</strong>
+                    <span className={`text-[9px] ${st.textSecondary} block font-mono`}>Beli: {rev.product}</span>
+                  </div>
                 </div>
-              </div>
-
-              <div className={`${st.cardBg} p-4 rounded-2xl border ${st.border} shadow-xs space-y-2`}>
-                <div className="flex gap-0.5 text-amber-500 text-[10px]">★★★★★</div>
-                <p className="leading-relaxed">“Checkout jam tangan smart menggunakan QRIS instan sekali prosesnya. Customer care sangat ramah.”</p>
-                <div>
-                  <strong className={`${st.textPrimary} block text-xs`}>Aditya Nugroho</strong>
-                  <span className={`text-[9px] ${st.textSecondary} block font-mono`}>Beli: Smartwatch Sport V2</span>
-                </div>
-              </div>
-
-              <div className={`${st.cardBg} p-4 rounded-2xl border ${st.border} shadow-xs space-y-2`}>
-                <div className="flex gap-0.5 text-amber-500 text-[10px]">★★★★★</div>
-                <p className="leading-relaxed">“Harganya miring dibandingkan toko luar, voucher subsidi beneran gratis ongkir.”</p>
-                <div>
-                  <strong className={`${st.textPrimary} block text-xs`}>Sarah Amalia</strong>
-                  <span className={`text-[9px] ${st.textSecondary} block font-mono`}>Beli: Serum Skin Radiant</span>
-                </div>
-              </div>
+              ))}
             </div>
           </section>
 

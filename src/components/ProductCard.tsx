@@ -123,24 +123,18 @@ export default function ProductCard({ product, onViewDetail, onBuyImmediate }: P
         </div>
 
         <div className="mt-2.5 pt-2.5 border-t border-gray-100/60">
-          {/* Ratings & Sold counts (e.g. 4.9 • 10rb+ terjual) */}
-          <div className="flex items-center gap-1 text-[11px] font-semibold text-gray-500 mb-2">
-            <div className="flex text-amber-400 items-center">
-              <Star className="w-3.5 h-3.5 fill-current" />
-            </div>
-            <span>4.8</span>
-            <span className="text-gray-300">•</span>
-            <span>10rb+ terjual</span>
-          </div>
-
           {/* Store Verification & Location (e.g. Jakarta Pusat, Beas Ongkir) */}
           <div className="flex items-center gap-1.5 text-[10px] text-gray-500 select-none">
-            <div className="flex items-center gap-1 shrink-0">
-              <span className="w-3.5 h-3.5 bg-zinc-950 text-white rounded-full flex items-center justify-center font-black text-[8px]">✓</span>
-              <span className="font-extrabold text-zinc-950">Mall</span>
-            </div>
-            <span className="text-gray-300">•</span>
-            <span className="truncate font-semibold text-gray-500">Jakarta Pusat</span>
+            {product.isMall !== false && (
+              <>
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="w-3.5 h-3.5 bg-zinc-950 text-white rounded-full flex items-center justify-center font-black text-[8px]">✓</span>
+                  <span className="font-extrabold text-zinc-950">Mall</span>
+                </div>
+                <span className="text-gray-300">•</span>
+              </>
+            )}
+            <span className="truncate font-semibold text-gray-500">{product.shippingCity || "Jakarta Pusat"}</span>
           </div>
 
           {/* Action grid button */}

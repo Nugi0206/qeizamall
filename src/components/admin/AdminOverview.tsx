@@ -339,7 +339,7 @@ export default function AdminOverview({ orders, products, stockLogs }: AdminOver
             <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-0.5 rounded-full lowercase tracking-normal">ERP Ledgers</span>
           </h3>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl">
               <span className="text-[9px] text-gray-400 font-extrabold uppercase tracking-widest block">Uang Dalam Perjalanan</span>
               <p className="text-sm sm:text-base font-black text-gray-900 mt-1">{formatIDR(cashInTransit)}</p>

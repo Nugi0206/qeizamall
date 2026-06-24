@@ -3,20 +3,142 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from "react";
-import { Settings, BankAccount, Address } from "../../types";
-import { Settings as SettingsIcon, Truck, Building, Globe, Shield, RefreshCw, Plus, Trash2, CheckCircle2, Save } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Settings, BankAccount, Address, Product } from "../../types";
+import { 
+  Settings as SettingsIcon, Truck, Building, Globe, Shield, RefreshCw, 
+  Plus, Trash2, CheckCircle2, Save, Sparkles, Star, BookOpen, Search, Gift 
+} from "lucide-react";
 
 interface AdminSettingsProps {
   settings: Settings;
   onUpdateSettings: (updates: Partial<Settings>) => void;
+  products: Product[];
 }
 
-export default function AdminSettings({ settings, onUpdateSettings }: AdminSettingsProps) {
+export default function AdminSettings({ settings, onUpdateSettings, products = [] }: AdminSettingsProps) {
   const [logoUrl, setLogoUrl] = useState(settings.logoUrl || "");
   const [aboutText, setAboutText] = useState(settings.aboutText || "");
   const [contactPhone, setContactPhone] = useState(settings.contactPhone || "");
   const [contactEmail, setContactEmail] = useState(settings.contactEmail || "");
+
+  // Custom Homepage Section Texts
+  const [newArrivalTitle, setNewArrivalTitle] = useState(settings.newArrivalTitle || "Koleksi New Arrival Pilihan");
+  const [newArrivalBadge, setNewArrivalBadge] = useState(settings.newArrivalBadge || "Koleksi Terbaru");
+  const [collectionTitle, setCollectionTitle] = useState(settings.collectionTitle || "Lihat Koleksi Eksklusif Qeiza");
+  const [collectionBadge, setCollectionBadge] = useState(settings.collectionBadge || "Inspirasi Gaya");
+
+  // Custom Flash Sale Product Selection
+  const [flashSaleProductIds, setFlashSaleProductIds] = useState<string[]>(settings.flashSaleProductIds || []);
+  const [flashSearchQuery, setFlashSearchQuery] = useState("");
+
+  // Custom Buyer Reviews Management
+  const [reviews, setReviews] = useState<any[]>(settings.reviews || [
+    { id: "rev-1", name: "Anisa Rahmawati", stars: 5, text: "Bahan kemeja linennya adem banget, pas di badan, jahitan rapi banget. Pengiriman cepat cuma sehari sampai Jakarta! Bakal langganan terus di Qeiza Mall.", product: "Kemeja Linen Premium" },
+    { id: "rev-2", name: "Budi Santoso", stars: 5, text: "Sandal slide-nya empuk dan nyaman dipakai harian. Seller responsif dan verifikasi mall-nya bikin percaya belanja di sini.", product: "Sandal Slide Ergo" },
+    { id: "rev-3", name: "Dewi Lestari", stars: 5, text: "Produk kecantikannya original 100%, ada barcode verifikasi resmi. Packaging tebal pakai bubble wrap ganda gratis.", product: "Skincare Glow Serum" }
+  ]);
+  const [newReviewName, setNewReviewName] = useState("");
+  const [newReviewStars, setNewReviewStars] = useState(5);
+  const [newReviewText, setNewReviewText] = useState("");
+  const [newReviewProduct, setNewReviewProduct] = useState("");
+
+  // Blog Posts Management State for Inspirasi Edukasi
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
+  const [newBlogTitle, setNewBlogTitle] = useState("");
+  const [newBlogExcerpt, setNewBlogExcerpt] = useState("");
+  const [newBlogContent, setNewBlogContent] = useState("");
+  const [newBlogCategory, setNewBlogCategory] = useState("Lifestyle");
+  const [newBlogImageUrl, setNewBlogImageUrl] = useState("");
+  const [newBlogReadTime, setNewBlogReadTime] = useState("3 Min Read");
+
+  const fetchBlogPosts = async () => {
+    try {
+      const res = await fetch("/api/blog-posts");
+      if (res.ok) {
+        const data = await res.json();
+        setBlogPosts(data);
+      }
+    } catch (err) {
+      console.error("Gagal mengambil ulasan:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchBlogPosts();
+  }, []);
+
+  const handleAddBlog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBlogTitle.trim() || !newBlogContent.trim()) {
+      alert("Harap lengkapi Judul dan Konten Artikel!");
+      return;
+    }
+
+    const payload = {
+      title: newBlogTitle.trim(),
+      excerpt: newBlogExcerpt.trim() || newBlogContent.trim().substring(0, 100) + "...",
+      content: newBlogContent.trim(),
+      category: newBlogCategory,
+      imageUrl: newBlogImageUrl.trim() || "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=400&q=80",
+      readTime: newBlogReadTime || "3 Min Read",
+      createdAt: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
+    };
+
+    try {
+      const res = await fetch("/api/blog-posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        fetchBlogPosts();
+        setNewBlogTitle("");
+        setNewBlogExcerpt("");
+        setNewBlogContent("");
+        setNewBlogImageUrl("");
+        alert("Artikel inspirasi edukasi berhasil dipublikasikan!");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteBlog = async (id: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus artikel edukasi ini?")) return;
+    try {
+      const res = await fetch(`/api/blog-posts/${id}`, {
+        method: "DELETE"
+      });
+      if (res.ok) {
+        fetchBlogPosts();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAddReview = () => {
+    if (!newReviewName.trim() || !newReviewText.trim()) {
+      alert("Harap isi nama pembeli dan ulasan!");
+      return;
+    }
+    const newRev = {
+      id: "rev-" + Date.now(),
+      name: newReviewName.trim(),
+      stars: Number(newReviewStars),
+      text: newReviewText.trim(),
+      product: newReviewProduct.trim() || "Produk Pilihan"
+    };
+    setReviews([...reviews, newRev]);
+    setNewReviewName("");
+    setNewReviewText("");
+    setNewReviewProduct("");
+  };
+
+  const handleRemoveReview = (id: string) => {
+    setReviews(reviews.filter(r => r.id !== id));
+  };
 
   // SEO
   const [seoTitle, setSeoTitle] = useState(settings.seoTitle || "");
@@ -136,7 +258,13 @@ export default function AdminSettings({ settings, onUpdateSettings }: AdminSetti
       bannerTitle: bannerTitle.trim(),
       bannerDescription: bannerDescription.trim(),
       bannerCtaText: bannerCtaText.trim(),
-      bannerImageUrl: bannerImageUrl.trim()
+      bannerImageUrl: bannerImageUrl.trim(),
+      newArrivalTitle: newArrivalTitle.trim(),
+      newArrivalBadge: newArrivalBadge.trim(),
+      collectionTitle: collectionTitle.trim(),
+      collectionBadge: collectionBadge.trim(),
+      flashSaleProductIds,
+      reviews
     };
 
     onUpdateSettings(updates);
@@ -564,6 +692,348 @@ export default function AdminSettings({ settings, onUpdateSettings }: AdminSetti
               </p>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* 4B. CUSTOM HOMEPAGE CONTENT SECTION (NEW ARRIVALS & LIHAT KOLEKSI) */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+        <h3 className="text-base font-extrabold text-gray-950 border-b pb-3 flex items-center gap-2">
+          <Sparkles className="text-emerald-500 w-5 h-5" />
+          <span>Pengaturan Konten Teks Beranda</span>
+        </h3>
+        <p className="text-xs text-gray-400">Sesuaikan judul, badge, dan teks promosi pada section "New Arrival" dan "Lihat Koleksi" di halaman depan.</p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Seksi New Arrival</h4>
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Badge Section</label>
+              <input
+                type="text"
+                placeholder="Contoh: Koleksi Terbaru"
+                value={newArrivalBadge}
+                onChange={(e) => setNewArrivalBadge(e.target.value)}
+                className="w-full text-xs font-semibold p-3.5 border border-gray-200 rounded-xl"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Judul Section Utama</label>
+              <input
+                type="text"
+                placeholder="Contoh: Koleksi New Arrival Pilihan"
+                value={newArrivalTitle}
+                onChange={(e) => setNewArrivalTitle(e.target.value)}
+                className="w-full text-xs font-semibold p-3.5 border border-gray-200 rounded-xl"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Seksi Lihat Koleksi</h4>
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Badge Section</label>
+              <input
+                type="text"
+                placeholder="Contoh: Inspirasi Gaya"
+                value={collectionBadge}
+                onChange={(e) => setCollectionBadge(e.target.value)}
+                className="w-full text-xs font-semibold p-3.5 border border-gray-200 rounded-xl"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Judul Section Utama</label>
+              <input
+                type="text"
+                placeholder="Contoh: Lihat Koleksi Eksklusif Qeiza"
+                value={collectionTitle}
+                onChange={(e) => setCollectionTitle(e.target.value)}
+                className="w-full text-xs font-semibold p-3.5 border border-gray-200 rounded-xl"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 4C. DYNAMIC FLASH SALE PRODUCT SELECTOR */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+        <h3 className="text-base font-extrabold text-gray-950 border-b pb-3 flex items-center gap-2">
+          <Gift className="text-emerald-500 w-5 h-5" />
+          <span>Pengaturan Produk Flash Sale Kejutan</span>
+        </h3>
+        <p className="text-xs text-gray-400">Pilih secara fleksibel produk mana saja yang ingin Anda tampilkan dalam barisan Flash Sale Kejutan Qeiza Mall.</p>
+
+        {/* Selected indicator */}
+        <div className="bg-emerald-50/50 border border-emerald-100 p-4 rounded-2xl">
+          <span className="text-[10px] font-extrabold text-emerald-800 uppercase tracking-widest block mb-2">Terpilih Untuk Flash Sale ({flashSaleProductIds.length} Produk)</span>
+          {flashSaleProductIds.length === 0 ? (
+            <span className="text-xs text-gray-400 italic">Belum ada produk spesifik terpilih. (Akan otomatis menampilkan produk berlabel "promo" atau berdiskon).</span>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {flashSaleProductIds.map(pId => {
+                const matched = products.find(p => p.id === pId);
+                return (
+                  <span key={pId} className="text-[10px] font-bold bg-white border border-emerald-200 text-emerald-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs">
+                    <span>{matched ? matched.name : pId}</span>
+                    <button
+                      type="button"
+                      onClick={() => setFlashSaleProductIds(flashSaleProductIds.filter(id => id !== pId))}
+                      className="text-rose-500 hover:text-rose-600 font-extrabold text-xs"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Search for products to add to Flash Sale */}
+        <div className="space-y-3 pt-2">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Cari produk berdasarkan nama atau SKU..."
+              value={flashSearchQuery}
+              onChange={(e) => setFlashSearchQuery(e.target.value)}
+              className="w-full text-xs font-semibold p-3.5 border border-gray-200 rounded-xl pl-10"
+            />
+            <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-gray-400" />
+          </div>
+
+          <div className="max-h-56 overflow-y-auto border border-gray-100 rounded-2xl divide-y">
+            {products
+              .filter(p => p.name.toLowerCase().includes(flashSearchQuery.toLowerCase()) || p.sku.toLowerCase().includes(flashSearchQuery.toLowerCase()))
+              .map(p => {
+                const isSelected = flashSaleProductIds.includes(p.id);
+                return (
+                  <div key={p.id} className="flex items-center justify-between p-3 hover:bg-gray-50/80 transition-colors">
+                    <div className="flex items-center gap-2.5">
+                      <img referrerPolicy="no-referrer" src={p.images[0]} alt="" className="w-8 h-8 object-cover rounded border" />
+                      <div>
+                        <span className="text-xs font-bold text-gray-800 block leading-tight">{p.name}</span>
+                        <span className="text-[9px] font-mono text-gray-400">SKU: {p.sku} · Rp {p.price.toLocaleString("id-ID")}</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isSelected) {
+                          setFlashSaleProductIds(flashSaleProductIds.filter(id => id !== p.id));
+                        } else {
+                          setFlashSaleProductIds([...flashSaleProductIds, p.id]);
+                        }
+                      }}
+                      className={`text-[10px] font-extrabold px-3 py-1.5 rounded-lg transition-all ${
+                        isSelected 
+                          ? "bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100" 
+                          : "bg-zinc-900 text-white hover:bg-black"
+                      }`}
+                    >
+                      {isSelected ? "Keluarkan" : "Ikut Flash Sale"}
+                    </button>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      </div>
+
+      {/* 4D. CUSTOM BUYER REVIEWS PANEL */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+        <h3 className="text-base font-extrabold text-gray-950 border-b pb-3 flex items-center gap-2">
+          <Star className="text-emerald-500 fill-emerald-500 w-5 h-5" />
+          <span>Pengaturan Ulasan Pembeli Puas</span>
+        </h3>
+        <p className="text-xs text-gray-400">Tambahkan, ubah, dan hapus ulasan kepuasan pelanggan yang ditampilkan di halaman beranda.</p>
+
+        {/* Review list */}
+        <div className="space-y-3 pt-2">
+          {reviews.map((rev) => (
+            <div key={rev.id} className="p-4 rounded-2xl border border-gray-100 bg-gray-50/30 flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black text-gray-800">{rev.name}</span>
+                  <span className="text-[10px] text-gray-400 font-medium">({rev.product})</span>
+                </div>
+                <div className="flex text-amber-400">
+                  {Array.from({ length: rev.stars }).map((_, i) => (
+                    <Star key={i} className="w-3 h-3 fill-current" />
+                  ))}
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed font-medium italic">"{rev.text}"</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleRemoveReview(rev.id)}
+                className="text-rose-500 hover:text-rose-600 p-1 hover:bg-rose-50 rounded-lg transition-all"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Add new review */}
+        <div className="bg-gray-50/60 p-4 rounded-2xl border border-dashed border-gray-200 space-y-3 pt-4">
+          <span className="text-[10px] font-black text-gray-700 uppercase tracking-widest block">Input Ulasan Baru</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input
+              type="text"
+              placeholder="Nama Lengkap Pembeli..."
+              value={newReviewName}
+              onChange={(e) => setNewReviewName(e.target.value)}
+              className="p-3 bg-white border rounded-xl text-xs font-semibold col-span-1"
+            />
+            <input
+              type="text"
+              placeholder="Nama Barang yang Dibeli..."
+              value={newReviewProduct}
+              onChange={(e) => setNewReviewProduct(e.target.value)}
+              className="p-3 bg-white border rounded-xl text-xs font-semibold col-span-1"
+            />
+            <select
+              value={newReviewStars}
+              onChange={(e) => setNewReviewStars(Number(e.target.value))}
+              className="p-3 bg-white border rounded-xl text-xs font-bold col-span-1"
+            >
+              <option value={5}>⭐⭐⭐⭐⭐ (5 Bintang)</option>
+              <option value={4}>⭐⭐⭐⭐ (4 Bintang)</option>
+              <option value={3}>⭐⭐⭐ (3 Bintang)</option>
+            </select>
+          </div>
+          <textarea
+            rows={2}
+            placeholder="Ketik isi komentar atau testimoni pembeli di sini..."
+            value={newReviewText}
+            onChange={(e) => setNewReviewText(e.target.value)}
+            className="w-full p-3 bg-white border rounded-xl text-xs font-semibold resize-none"
+          />
+          <button
+            type="button"
+            onClick={handleAddReview}
+            className="px-4 py-2 bg-zinc-900 hover:bg-black text-white rounded-lg text-xs font-extrabold"
+          >
+            Tambahkan Ulasan Pembeli +
+          </button>
+        </div>
+      </div>
+
+      {/* 4E. EDUCATIONAL BLOG INSPIRATION POSTS PANEL */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+        <h3 className="text-base font-extrabold text-gray-950 border-b pb-3 flex items-center gap-2">
+          <BookOpen className="text-emerald-500 w-5 h-5" />
+          <span>Pengaturan Inspirasi Edukasi & Blog</span>
+        </h3>
+        <p className="text-xs text-gray-400">Tulis dan publikasikan artikel atau panduan edukasi baru untuk memikat minat para pembeli.</p>
+
+        {/* Existing blog list */}
+        <div className="space-y-3 pt-2">
+          {blogPosts.map((post) => (
+            <div key={post.id} className="p-3.5 rounded-2xl border border-gray-150 bg-white flex items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-3">
+                <img referrerPolicy="no-referrer" src={post.imageUrl} alt="" className="w-10 h-10 object-cover rounded-xl border shrink-0" />
+                <div>
+                  <span className="text-[9px] bg-zinc-100 text-zinc-800 px-2 py-0.5 rounded-full font-bold uppercase">{post.category}</span>
+                  <h4 className="text-xs font-extrabold text-gray-800 mt-1">{post.title}</h4>
+                  <p className="text-[10px] text-gray-400">{post.readTime} · Dibuat {post.createdAt}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleDeleteBlog(post.id)}
+                className="text-rose-500 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition-all"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Add new blog form */}
+        <div className="bg-gray-50/60 p-4 rounded-2xl border border-dashed border-gray-200 space-y-3 pt-4">
+          <span className="text-[10px] font-black text-gray-700 uppercase tracking-widest block">Tulis Artikel Baru</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Judul Utama</label>
+              <input
+                type="text"
+                placeholder="Contoh: 5 Kunci Memilih Ukuran Celana Linen..."
+                value={newBlogTitle}
+                onChange={(e) => setNewBlogTitle(e.target.value)}
+                className="w-full p-3 bg-white border rounded-xl text-xs font-semibold"
+              />
+            </div>
+            <div>
+              <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Kategori Utama</label>
+              <select
+                value={newBlogCategory}
+                onChange={(e) => setNewBlogCategory(e.target.value)}
+                className="w-full p-3 bg-white border rounded-xl text-xs font-bold"
+              >
+                <option value="Fashion">Fashion & Style</option>
+                <option value="Edukasi">Inspirasi Edukasi</option>
+                <option value="Lifestyle">Lifestyle</option>
+                <option value="Tips & Trik">Tips & Trik</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-1">URL Cover Foto</label>
+              <input
+                type="text"
+                placeholder="Contoh: https://images.unsplash.com/..."
+                value={newBlogImageUrl}
+                onChange={(e) => setNewBlogImageUrl(e.target.value)}
+                className="w-full p-3 bg-white border rounded-xl text-xs font-semibold"
+              />
+            </div>
+            <div>
+              <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Estimasi Durasi Baca</label>
+              <input
+                type="text"
+                placeholder="Contoh: 3 Min Read"
+                value={newBlogReadTime}
+                onChange={(e) => setNewBlogReadTime(e.target.value)}
+                className="w-full p-3 bg-white border rounded-xl text-xs font-semibold"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Kutipan Ringkas (Excerpt)</label>
+            <input
+              type="text"
+              placeholder="Isi satu kalimat rangkuman singkat..."
+              value={newBlogExcerpt}
+              onChange={(e) => setNewBlogExcerpt(e.target.value)}
+              className="w-full p-3 bg-white border rounded-xl text-xs font-semibold"
+            />
+          </div>
+
+          <div>
+            <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Isi Konten Artikel Lengkap</label>
+            <textarea
+              rows={4}
+              placeholder="Tulis seluruh konten artikel secara lengkap..."
+              value={newBlogContent}
+              onChange={(e) => setNewBlogContent(e.target.value)}
+              className="w-full p-3 bg-white border rounded-xl text-xs font-semibold"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              handleAddBlog(e as any);
+            }}
+            className="px-4 py-2.5 bg-zinc-900 hover:bg-black text-white rounded-lg text-xs font-extrabold"
+          >
+            Publikasikan Artikel Edukasi +
+          </button>
         </div>
       </div>
 

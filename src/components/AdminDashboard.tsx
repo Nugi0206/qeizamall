@@ -13,7 +13,7 @@ import AdminSettings from "./admin/AdminSettings";
 
 import { 
   X, LogIn, LayoutDashboard, ShoppingCart, 
-  Boxes, Tag, Settings as SettingsIcon, LogOut, Lock, Mail, Play, ArrowLeft
+  Boxes, Tag, Settings as SettingsIcon, LogOut, Lock, Mail, Play, ArrowLeft, Menu
 } from "lucide-react";
 
 interface AdminDashboardProps {
@@ -53,6 +53,7 @@ export default function AdminDashboard({
 }: AdminDashboardProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "orders" | "stock" | "promos" | "settings">("overview");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Login variables
   const [email, setEmail] = useState("");
@@ -189,18 +190,56 @@ export default function AdminDashboard({
 
   return (
     <div className="min-h-screen bg-zinc-50 flex flex-col lg:flex-row font-sans">
+      {/* MOBILE TOPBAR HEADER - only visible on mobile/tablet screens (< lg) */}
+      <header className="lg:hidden h-16 bg-zinc-950 border-b border-zinc-800 px-4 flex items-center justify-between text-white shrink-0 sticky top-0 z-50">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-white rounded-lg text-zinc-950 flex items-center justify-center font-extrabold text-sm">
+            Q
+          </div>
+          <div>
+            <span className="font-extrabold text-xs tracking-tight block">QEIZA PORTAL ERP</span>
+            <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest block">Control Panel</span>
+          </div>
+        </div>
+        <button 
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 rounded-lg hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all cursor-pointer"
+        >
+          {isMobileMenuOpen ? <X className="w-5.5 h-5.5" /> : <Menu className="w-5.5 h-5.5" />}
+        </button>
+      </header>
+
+      {/* MOBILE DRAWER OVERLAY BACKDROP */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* SIDEBAR NAVIGATION: Admin Layout - hidden during browser printing */}
-      <aside className="w-full lg:w-68 bg-zinc-950 text-zinc-400 p-6 flex flex-col justify-between shrink-0 no-print border-r border-zinc-800">
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-68 bg-zinc-950 text-zinc-400 p-6 flex flex-col justify-between shrink-0 no-print border-r border-zinc-800 transform lg:transform-none transition-transform duration-300 ${
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      }`}>
         <div className="space-y-8">
           {/* Brand header Logo details */}
-          <div className="flex items-center gap-3 border-b border-zinc-900 pb-5">
-            <div className="w-9 h-9 bg-white rounded-lg text-zinc-950 flex items-center justify-center font-extrabold text-base">
-              Q
+          <div className="flex items-center justify-between border-b border-zinc-900 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-white rounded-lg text-zinc-950 flex items-center justify-center font-extrabold text-base">
+                Q
+              </div>
+              <div>
+                <span className="font-extrabold text-white text-sm tracking-tight block">QEIZA PORTAL ERP</span>
+                <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest block mt-0.5">Control Panel</span>
+              </div>
             </div>
-            <div>
-              <span className="font-extrabold text-white text-sm tracking-tight block">QEIZA PORTAL ERP</span>
-              <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest block mt-0.5">Control Panel</span>
-            </div>
+            {/* Close button inside drawer for better UX on mobile */}
+            <button 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="lg:hidden p-1.5 rounded-md hover:bg-zinc-900 text-zinc-500 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Navigation links */}
@@ -213,7 +252,10 @@ export default function AdminDashboard({
                 <button
                   id={`tab-${tab.id}`}
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setIsMobileMenuOpen(false);
+                  }}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-bold font-sans transition-all leading-none ${
                     activeTab === tab.id 
                       ? "bg-zinc-800 text-white shadow-xs" 
@@ -241,6 +283,7 @@ export default function AdminDashboard({
             onClick={() => {
               onRefreshData();
               alert("Data backend toko berhasil disegarkan!");
+              setIsMobileMenuOpen(false);
             }}
             className="w-full flex items-center gap-2.5 px-4 py-3 rounded-lg hover:bg-zinc-900 text-xs font-semibold text-zinc-300 hover:text-white transition-colors"
           >
@@ -250,7 +293,10 @@ export default function AdminDashboard({
           
           {onExitAdmin && (
             <button
-              onClick={onExitAdmin}
+              onClick={() => {
+                onExitAdmin();
+                setIsMobileMenuOpen(false);
+              }}
               className="w-full flex items-center gap-2.5 px-4 py-3 rounded-lg hover:bg-zinc-900 text-xs font-semibold text-zinc-300 hover:text-white transition-colors"
             >
               <ArrowLeft className="w-4 h-4 text-zinc-400" />
@@ -259,7 +305,10 @@ export default function AdminDashboard({
           )}
 
           <button
-            onClick={() => setIsAuthenticated(false)}
+            onClick={() => {
+              setIsAuthenticated(false);
+              setIsMobileMenuOpen(false);
+            }}
             className="w-full flex items-center gap-2.5 px-4 py-3 rounded-lg text-rose-400 hover:bg-rose-950/20 hover:text-rose-300 text-xs font-bold transition-colors"
           >
             <LogOut className="w-4 h-4 shrink-0" />
@@ -269,7 +318,7 @@ export default function AdminDashboard({
       </aside>
 
       {/* WORKSPACE AREA: Dynamic tabs content */}
-      <main className="flex-1 p-6 sm:p-8 overflow-y-auto max-h-screen">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-h-screen">
         {/* Render active workspace panel */}
         {activeTab === "overview" && (
           <AdminOverview 
@@ -310,6 +359,7 @@ export default function AdminDashboard({
           <AdminSettings 
             settings={settings}
             onUpdateSettings={onUpdateSettings}
+            products={products}
           />
         )}
       </main>

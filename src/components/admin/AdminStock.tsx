@@ -50,6 +50,12 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
   const [label, setLabel] = useState<Product["label"]>("biasa");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
+  // New customizable fields for Tokopedia Mall Verification & Shipping City and Variant Photos
+  const [isMall, setIsMall] = useState(true);
+  const [shippingCity, setShippingCity] = useState("Jakarta Pusat");
+  const [colorImages, setColorImages] = useState<Record<string, string>>({});
+  const [tempColorImage, setTempColorImage] = useState<string | null>(null);
+
   const formatIDR = (num: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -78,6 +84,10 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
     setSizes(prod.sizes || []);
     setLabel(prod.label);
     setVideoUrl(prod.videoUrl || null);
+    setIsMall(prod.isMall !== false);
+    setShippingCity(prod.shippingCity || "Jakarta Pusat");
+    setColorImages(prod.colorImages || {});
+    setTempColorImage(null);
   };
 
   const handleOpenCreator = () => {
@@ -100,6 +110,10 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
     setSizes(["All Size"]);
     setLabel("baru");
     setVideoUrl(null);
+    setIsMall(true);
+    setShippingCity("Jakarta Pusat");
+    setColorImages({});
+    setTempColorImage(null);
   };
 
   const handleSaveProduct = (e: React.FormEvent) => {
@@ -130,7 +144,10 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
       isActive: true,
       videoUrl: videoUrl,
       adVideoUrl: null,
-      discount: promoPrice ? Math.round(((price - promoPrice) / price) * 100) : 0
+      discount: promoPrice ? Math.round(((price - promoPrice) / price) * 100) : 0,
+      isMall,
+      shippingCity: shippingCity.trim() || "Jakarta Pusat",
+      colorImages
     };
 
     if (isCreating) {
@@ -163,9 +180,14 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
   };
 
   const handleAddColor = () => {
-    if (colorInput.trim()) {
-      setColors([...colors, colorInput.trim()]);
+    const trimmed = colorInput.trim();
+    if (trimmed) {
+      setColors([...colors, trimmed]);
+      if (tempColorImage) {
+        setColorImages(prev => ({ ...prev, [trimmed]: tempColorImage }));
+      }
       setColorInput("");
+      setTempColorImage(null);
     }
   };
 
@@ -595,6 +617,30 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Kota Pengiriman Gudang</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Jakarta Pusat, Bandung..."
+                      value={shippingCity}
+                      onChange={(e) => setShippingCity(e.target.value)}
+                      className="w-full text-xs font-bold p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div className="flex items-center pl-1 pt-4">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={isMall}
+                        onChange={(e) => setIsMall(e.target.checked)}
+                        className="w-4.5 h-4.5 accent-emerald-500 rounded border-gray-300"
+                      />
+                      <span className="text-xs font-bold text-gray-700">Verifikasi Mall (Official Store)</span>
+                    </label>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-3 gap-3">
                   <div>
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Harga Modal (Rp)</label>
@@ -781,31 +827,81 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
 
                 {/* Colors Choice Input list */}
                 <div className="bg-gray-50 p-4 rounded-2xl border space-y-3">
-                  <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest block font-bold">Varian Pilihan Warna</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Contoh: Mint Cream, Titanium..."
-                      value={colorInput}
-                      onChange={(e) => setColorInput(e.target.value)}
-                      className="flex-1 text-xs font-semibold p-2.5 bg-white border border-gray-200 rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAddColor}
-                      className="px-3 bg-gray-950 hover:bg-black text-white text-xs font-bold rounded-lg"
-                    >
-                      (+)
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {colors.map((c, ix) => (
-                      <span key={ix} className="text-[10px] bg-white border font-bold text-gray-600 px-2 py-0.5 rounded-md relative pr-5">
-                        {c}
+                  <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest block font-bold">Varian Pilihan Warna & Foto</label>
+                  
+                  <div className="space-y-2 bg-white p-3 rounded-xl border border-gray-150">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Contoh: Mint Cream, Sage..."
+                        value={colorInput}
+                        onChange={(e) => setColorInput(e.target.value)}
+                        className="flex-1 text-xs font-semibold p-2.5 bg-white border border-gray-250 rounded-lg focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddColor}
+                        className="px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                      >
+                        Tambah Varian
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-1 border-t border-gray-50">
+                      <div className="relative shrink-0">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                if (typeof reader.result === "string") {
+                                  setTempColorImage(reader.result);
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
                         <button
                           type="button"
-                          onClick={() => setColors(colors.filter((_, i) => i !== ix))}
-                          className="absolute right-1 top-1 text-rose-500 text-[8px] font-bold hover:scale-125"
+                          className="px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-850 text-[10px] font-bold rounded-lg border cursor-pointer"
+                        >
+                          📷 Upload Foto Varian
+                        </button>
+                      </div>
+                      
+                      {tempColorImage ? (
+                        <div className="flex items-center gap-1.5">
+                          <img referrerPolicy="no-referrer" src={tempColorImage} alt="" className="w-6 h-6 object-cover rounded-md border" />
+                          <span className="text-[10px] text-emerald-600 font-semibold">Foto siap ditambahkan</span>
+                          <button type="button" onClick={() => setTempColorImage(null)} className="text-rose-500 font-bold text-xs hover:scale-110">✕</button>
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-gray-400">Belum ada foto varian warna terpilih</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {colors.map((c, ix) => (
+                      <span key={ix} className="text-[10px] bg-white border border-gray-200 font-bold text-gray-700 pl-2 pr-7 py-2 rounded-xl relative flex items-center gap-1.5 shadow-xs">
+                        {colorImages[c] && (
+                          <img referrerPolicy="no-referrer" src={colorImages[c]} alt="" className="w-5 h-5 object-cover rounded-md border" />
+                        )}
+                        <span>{c}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setColors(colors.filter((_, i) => i !== ix));
+                            const nextImgs = { ...colorImages };
+                            delete nextImgs[c];
+                            setColorImages(nextImgs);
+                          }}
+                          className="absolute right-1 top-2.5 text-rose-500 text-[10px] font-black hover:scale-125 hover:text-rose-700"
                         >
                           ✕
                         </button>

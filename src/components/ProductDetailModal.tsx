@@ -106,7 +106,7 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
                 ) : (
                   <img 
                     referrerPolicy="no-referrer"
-                    src={product.images[activeImageIdx] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80"} 
+                    src={selectedColor && product.colorImages?.[selectedColor] ? product.colorImages[selectedColor] : (product.images[activeImageIdx] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80")} 
                     alt={product.name} 
                     className="w-full h-full object-cover"
                   />
