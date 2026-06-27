@@ -28,6 +28,7 @@ export interface Product {
   isMall?: boolean;
   shippingCity?: string;
   colorImages?: Record<string, string>; // Maps a color name to its variant base64/URL photo
+  variantPrices?: Record<string, { price: number; promoPrice: number | null; stock: number }>;
 }
 
 export interface Address {

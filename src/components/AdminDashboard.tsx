@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Order, Product, StockLog, Promo, Settings } from "../types";
 import AdminOverview from "./admin/AdminOverview";
 import AdminOrders from "./admin/AdminOrders";
@@ -11,10 +11,18 @@ import AdminStock from "./admin/AdminStock";
 import AdminPromosAndCustomers from "./admin/AdminPromosAndCustomers";
 import AdminSettings from "./admin/AdminSettings";
 
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, User } from "firebase/auth";
+import firebaseConfig from "../../firebase-applet-config.json";
+
 import { 
   X, LogIn, LayoutDashboard, ShoppingCart, 
   Boxes, Tag, Settings as SettingsIcon, LogOut, Lock, Mail, Play, ArrowLeft, Menu
 } from "lucide-react";
+
+// Initialize Firebase client
+const firebaseClientApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+const auth = getAuth(firebaseClientApp);
 
 interface AdminDashboardProps {
   products: Product[];
@@ -52,6 +60,7 @@ export default function AdminDashboard({
   onExitAdmin
 }: AdminDashboardProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "orders" | "stock" | "promos" | "settings">("overview");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -59,27 +68,75 @@ export default function AdminDashboard({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loadingLogin, setLoadingLogin] = useState(false);
+  const [loginError, setLoginError] = useState("");
 
-  // Mock standard credentials check
+  // Check auth state on mount
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const allowedEmails = ["muhamadnugiandri@gmail.com", "admin@qeiza.com"];
+        if (user.email && allowedEmails.includes(user.email.toLowerCase().trim())) {
+          setIsAuthenticated(true);
+          setCurrentUser(user);
+          setLoginError("");
+        } else {
+          setLoginError(`Akses ditolak: ${user.email} tidak terdaftar sebagai administrator.`);
+          setIsAuthenticated(false);
+          setCurrentUser(null);
+          signOut(auth).catch(err => console.error("Sign out error:", err));
+        }
+      } else {
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Standard credentials login
   const handlePasswordLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoadingLogin(true);
+    setLoginError("");
     setTimeout(() => {
       if (email.trim() === "admin@qeiza.com" && password === "admin123") {
         setIsAuthenticated(true);
+        setCurrentUser({ email: "admin@qeiza.com", displayName: "Default Admin" } as User);
+      } else if (email.trim().toLowerCase() === "muhamadnugiandri@gmail.com") {
+        setLoginError("Untuk email muhamadnugiandri@gmail.com, silakan gunakan tombol 'Login Instan dengan Google Akun' di bawah.");
       } else {
-        alert("Email atau password administrator salah! (Gunakan: admin@qeiza.com | admin123)");
+        setLoginError("Email atau password administrator salah! (Gunakan tombol Google Sign-In atau kredensial default)");
       }
       setLoadingLogin(false);
     }, 600);
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setLoadingLogin(true);
-    setTimeout(() => {
-      setIsAuthenticated(true);
+    setLoginError("");
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const allowedEmails = ["muhamadnugiandri@gmail.com", "admin@qeiza.com"];
+      if (user.email && allowedEmails.includes(user.email.toLowerCase().trim())) {
+        setIsAuthenticated(true);
+        setCurrentUser(user);
+      } else {
+        setLoginError(`Akses ditolak: ${user.email} tidak terdaftar sebagai administrator.`);
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+        await signOut(auth);
+      }
+    } catch (error: any) {
+      console.error("Google login error:", error);
+      if (error.code !== "auth/popup-closed-by-user") {
+        setLoginError(`Gagal masuk dengan Google: ${error.message}`);
+      }
+    } finally {
       setLoadingLogin(false);
-    }, 700);
+    }
   };
 
   const tabs = [
@@ -101,6 +158,12 @@ export default function AdminDashboard({
             <h1 className="text-xl font-extrabold text-zinc-900 tracking-tight uppercase">QEIZA PORTAL ERP</h1>
             <p className="text-[11px] text-zinc-400 font-medium">Masuk untuk mengelola stok, status order, laporan keuangan, dan promo secara aman.</p>
           </div>
+
+          {loginError && (
+            <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-xs font-semibold leading-relaxed animate-in fade-in slide-in-from-top-2 duration-200">
+              {loginError}
+            </div>
+          )}
 
           <form onSubmit={handlePasswordLogin} className="space-y-4">
             <div className="space-y-1.5">
@@ -242,6 +305,28 @@ export default function AdminDashboard({
             </button>
           </div>
 
+          {/* Active Admin user block */}
+          {currentUser && (
+            <div className="p-3 bg-zinc-900 rounded-lg border border-zinc-800/80 flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold text-xs uppercase shrink-0 border border-indigo-500/20">
+                {currentUser.photoURL ? (
+                  <img referrerPolicy="no-referrer" src={currentUser.photoURL} alt="Admin" className="w-full h-full rounded-full" />
+                ) : (
+                  (currentUser.displayName || currentUser.email || "A").slice(0, 1)
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block leading-none">Aktif Sebagai</span>
+                <span className="text-xs font-bold text-white block truncate mt-1">
+                  {currentUser.displayName || "Administrator"}
+                </span>
+                <span className="text-[9px] text-zinc-400 block truncate font-medium">
+                  {currentUser.email}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Navigation links */}
           <nav className="space-y-1">
             {tabs.map((tab) => {
@@ -306,6 +391,7 @@ export default function AdminDashboard({
 
           <button
             onClick={() => {
+              signOut(auth).catch(err => console.error("Sign out error:", err));
               setIsAuthenticated(false);
               setIsMobileMenuOpen(false);
             }}

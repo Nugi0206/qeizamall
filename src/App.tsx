@@ -441,6 +441,29 @@ export default function App() {
         (it) => it.productId === product.id && it.color === color && it.size === size
       );
 
+      // Resolve variant-specific pricing
+      let resolvedPrice = product.promoPrice || product.price;
+      if (product.variantPrices) {
+        let variantInfo = null;
+        if (color && size) {
+          const comb1 = `${color}-${size}`;
+          if (product.variantPrices[comb1]) variantInfo = product.variantPrices[comb1];
+          const comb2 = `${size}-${color}`;
+          if (product.variantPrices[comb2]) variantInfo = product.variantPrices[comb2];
+        }
+        if (!variantInfo && size && product.variantPrices[size]) {
+          variantInfo = product.variantPrices[size];
+        }
+        if (!variantInfo && color && product.variantPrices[color]) {
+          variantInfo = product.variantPrices[color];
+        }
+        if (variantInfo) {
+          resolvedPrice = variantInfo.promoPrice !== null && variantInfo.promoPrice !== undefined
+            ? variantInfo.promoPrice
+            : variantInfo.price;
+        }
+      }
+
       if (existingIdx > -1) {
         const nextCart = [...prevCart];
         nextCart[existingIdx].quantity += quantity;
@@ -452,7 +475,7 @@ export default function App() {
             id: `cart-${Date.now()}-${Math.random()}`,
             productId: product.id,
             productName: product.name,
-            price: product.promoPrice || product.price,
+            price: resolvedPrice,
             quantity,
             color,
             size,

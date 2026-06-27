@@ -55,6 +55,7 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
   const [shippingCity, setShippingCity] = useState("Jakarta Pusat");
   const [colorImages, setColorImages] = useState<Record<string, string>>({});
   const [tempColorImage, setTempColorImage] = useState<string | null>(null);
+  const [variantPrices, setVariantPrices] = useState<Record<string, { price: number; promoPrice: number | null; stock: number }>>({});
 
   const formatIDR = (num: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -88,6 +89,7 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
     setShippingCity(prod.shippingCity || "Jakarta Pusat");
     setColorImages(prod.colorImages || {});
     setTempColorImage(null);
+    setVariantPrices(prod.variantPrices || {});
   };
 
   const handleOpenCreator = () => {
@@ -114,6 +116,38 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
     setShippingCity("Jakarta Pusat");
     setColorImages({});
     setTempColorImage(null);
+    setVariantPrices({});
+  };
+
+  const getActiveVariantsList = () => {
+    const list: string[] = [];
+    const activeColors = colors.filter(c => c && c.trim() !== "");
+    const activeSizes = sizes.filter(s => s && s.trim() !== "");
+    
+    if (activeColors.length > 0 && activeSizes.length > 0) {
+      activeColors.forEach(c => {
+        activeSizes.forEach(s => {
+          if (c.trim() === "Kombinasi" && s.trim() === "All Size") {
+            // skip
+          } else if (c.trim() === "Kombinasi") {
+            list.push(s.trim());
+          } else if (s.trim() === "All Size") {
+            list.push(c.trim());
+          } else {
+            list.push(`${c.trim()}-${s.trim()}`);
+          }
+        });
+      });
+    } else if (activeColors.length > 0) {
+      activeColors.forEach(c => {
+        if (c.trim() !== "Kombinasi") list.push(c.trim());
+      });
+    } else if (activeSizes.length > 0) {
+      activeSizes.forEach(s => {
+        if (s.trim() !== "All Size") list.push(s.trim());
+      });
+    }
+    return list;
   };
 
   const handleSaveProduct = (e: React.FormEvent) => {
@@ -147,7 +181,8 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
       discount: promoPrice ? Math.round(((price - promoPrice) / price) * 100) : 0,
       isMall,
       shippingCity: shippingCity.trim() || "Jakarta Pusat",
-      colorImages
+      colorImages,
+      variantPrices
     };
 
     if (isCreating) {
@@ -946,6 +981,121 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
                 </div>
               </div>
             </div>
+
+            {/* Dynamic Variant Prices Section */}
+            {getActiveVariantsList().length > 0 && (
+              <div className="bg-zinc-50 border border-zinc-200 p-5 rounded-2xl space-y-4 my-5 animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-200 pb-3">
+                  <div>
+                    <h4 className="text-xs font-black text-zinc-800 uppercase tracking-wider">Atur Harga & Stok Per Varian</h4>
+                    <p className="text-[10px] text-zinc-500 font-semibold mt-0.5">Tentukan harga jual, promo, dan stok spesifik untuk setiap pilihan variasi.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const list = getActiveVariantsList();
+                      const next = { ...variantPrices };
+                      list.forEach(v => {
+                        if (!next[v]) {
+                          next[v] = {
+                            price: price || 0,
+                            promoPrice: promoPrice || null,
+                            stock: stock || 0
+                          };
+                        }
+                      });
+                      setVariantPrices(next);
+                    }}
+                    className="text-[9px] font-black uppercase text-indigo-600 hover:text-indigo-800 tracking-wider bg-white px-3 py-2 rounded-lg border border-indigo-200 shadow-xs cursor-pointer self-start sm:self-auto"
+                  >
+                    ⚡ Salin dari Harga Utama
+                  </button>
+                </div>
+                
+                <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+                  {getActiveVariantsList().map((v) => {
+                    const currentVariant = variantPrices[v] || { price: price || 0, promoPrice: promoPrice || null, stock: stock || 0 };
+                    return (
+                      <div key={v} className="bg-white p-3.5 rounded-xl border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                        <div className="min-w-0">
+                          <span className="text-xs font-black text-zinc-700 uppercase bg-zinc-100 px-3 py-1.5 rounded-lg tracking-wider inline-block">
+                            {v.replace("-", " / ")}
+                          </span>
+                        </div>
+                        
+                        <div className="flex flex-wrap items-center gap-3">
+                          {/* Jual price input */}
+                          <div className="space-y-1">
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Harga Jual Varian</span>
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-2.5 text-xs text-zinc-400 font-bold">Rp</span>
+                              <input
+                                type="number"
+                                value={currentVariant.price || ""}
+                                onChange={(e) => {
+                                  setVariantPrices({
+                                    ...variantPrices,
+                                    [v]: {
+                                      ...currentVariant,
+                                      price: Number(e.target.value)
+                                    }
+                                  });
+                                }}
+                                placeholder="Contoh: 150000"
+                                className="w-28 text-xs font-bold pl-8 pr-2.5 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-right"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Promo price input */}
+                          <div className="space-y-1">
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Harga Promo Varian</span>
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-2.5 text-xs text-zinc-400 font-bold">Rp</span>
+                              <input
+                                type="number"
+                                value={currentVariant.promoPrice === null ? "" : currentVariant.promoPrice}
+                                onChange={(e) => {
+                                  setVariantPrices({
+                                    ...variantPrices,
+                                    [v]: {
+                                      ...currentVariant,
+                                      promoPrice: e.target.value === "" ? null : Number(e.target.value)
+                                    }
+                                  });
+                                }}
+                                placeholder="Kosongkan jika tdk ada"
+                                className="w-32 text-xs font-bold pl-8 pr-2.5 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-right"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Stock input */}
+                          <div className="space-y-1">
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Stok Varian</span>
+                            <input
+                              type="number"
+                              value={currentVariant.stock === undefined ? "" : currentVariant.stock}
+                              onChange={(e) => {
+                                setVariantPrices({
+                                  ...variantPrices,
+                                  [v]: {
+                                    ...currentVariant,
+                                    stock: Number(e.target.value)
+                                  }
+                                });
+                              }}
+                              placeholder="0"
+                              className="w-16 text-xs font-bold px-2.5 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-center"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <button
               id="product-builder-submit-btn"

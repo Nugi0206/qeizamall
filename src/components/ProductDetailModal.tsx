@@ -33,9 +33,38 @@ export default function ProductDetailModal({ product, allProducts, onClose, onIn
     }).format(num);
   };
 
-  const hasDiscount = product.promoPrice !== null && product.promoPrice < product.price;
-  const currentPrice = hasDiscount ? product.promoPrice! : product.price;
-  const originalPrice = product.price;
+  // Variant helper resolution
+  const getSelectedVariantInfo = () => {
+    if (!product.variantPrices) return null;
+    
+    // 1. Try color-size combination
+    if (selectedColor && selectedSize) {
+      const comb1 = `${selectedColor}-${selectedSize}`;
+      if (product.variantPrices[comb1]) return product.variantPrices[comb1];
+      const comb2 = `${selectedSize}-${selectedColor}`;
+      if (product.variantPrices[comb2]) return product.variantPrices[comb2];
+    }
+    
+    // 2. Try size alone
+    if (selectedSize && product.variantPrices[selectedSize]) {
+      return product.variantPrices[selectedSize];
+    }
+    
+    // 3. Try color alone
+    if (selectedColor && product.variantPrices[selectedColor]) {
+      return product.variantPrices[selectedColor];
+    }
+    
+    return null;
+  };
+
+  const variantInfo = getSelectedVariantInfo();
+  const originalPrice = variantInfo && variantInfo.price !== undefined ? variantInfo.price : product.price;
+  const promoPrice = variantInfo && variantInfo.hasOwnProperty("promoPrice") ? variantInfo.promoPrice : product.promoPrice;
+  const currentStock = variantInfo && variantInfo.stock !== undefined ? variantInfo.stock : product.stock;
+
+  const hasDiscount = promoPrice !== null && promoPrice < originalPrice;
+  const currentPrice = hasDiscount ? promoPrice! : originalPrice;
   const discountPercent = hasDiscount ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100) : 0;
 
   // Find related products (same category, excluding current product)
@@ -229,10 +258,10 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
 
                 <div className="text-right">
                   <span className="text-xs text-gray-400 font-medium uppercase tracking-wider block">Kondisi Stok</span>
-                  {product.stock > 0 ? (
+                  {currentStock > 0 ? (
                     <span className="inline-flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full font-bold mt-1">
                       <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
-                      Ready ({product.stock} Unit)
+                      Ready ({currentStock} Unit)
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1.5 text-xs text-rose-700 bg-rose-50 border border-rose-100 px-3 py-1 rounded-full font-bold mt-1">
@@ -312,7 +341,7 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
             <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3">
               <button
                 id="modal-direct-buy-btn"
-                disabled={product.stock === 0}
+                disabled={currentStock === 0}
                 onClick={() => onInstantBuy(product, selectedColor, selectedSize)}
                 className="flex-1 py-4.5 px-6 rounded-2xl bg-zinc-950 hover:bg-zinc-800 text-white font-extrabold text-[15px] transition-all shadow-lg hover:shadow-zinc-950/10 flex items-center justify-center gap-2.5 disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
               >
