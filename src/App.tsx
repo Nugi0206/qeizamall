@@ -104,6 +104,7 @@ export default function App() {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [stockLogs, setStockLogs] = useState<StockLog[]>([]);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [isDirectFirestore, setIsDirectFirestore] = useState(false);
 
   // Store Template Style Mode
   const [storeTemplate, setStoreTemplate] = useState<"tokopedia" | "cream" | "midnight">(() => {
@@ -196,9 +197,97 @@ export default function App() {
       setStockLogs(logsData);
       
       setIsOfflineMode(false);
+      setIsDirectFirestore(false);
     } catch (err) {
-      console.warn("Express backend API server offline/unreachable. Switching to robust Client Storage / Offline Demo Mode.", err);
+      console.warn("Express backend API server offline/unreachable. Attempting direct connection to Firestore...", err);
+      try {
+        const { 
+          fetchProductsClient, 
+          fetchOrdersClient, 
+          fetchPromosClient, 
+          fetchSettingsClient, 
+          fetchStockLogsClient, 
+          fetchBlogPostsClient 
+        } = await import("./lib/firebase");
+        
+        const productsData = await fetchProductsClient();
+        setProducts(productsData);
+        
+        const ordersData = await fetchOrdersClient();
+        setOrders(ordersData);
+        
+        const promosData = await fetchPromosClient();
+        setPromos(promosData);
+        
+        const settingsData = await fetchSettingsClient();
+        if (settingsData) {
+          setSettings(settingsData);
+        } else {
+          setSettings({
+            logoUrl: "",
+            heroBanners: [
+              "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=80",
+              "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1600&q=80"
+            ],
+            aboutText: "Qeiza Mall menyediakan berbagai macam kebutuhan gaya hidup masa kini dengan kualitas terbaik.",
+            warehouseAddress: {
+              street: "Jl. Raya Boulevard Barat No.18",
+              kelurahan: "Kelapa Gading Barat",
+              kecamatan: "Kelapa Gading",
+              kabupaten: "Jakarta Utara",
+              provinsi: "DKI Jakarta",
+              postalCode: "14240"
+            },
+            activeCouriers: ["JNE", "J&T", "SiCepat"],
+            activePayments: {
+              cod: true,
+              transferBank: {
+                isActive: true,
+                accounts: [
+                  { bankName: "BCA", accountNo: "8045519223", holderName: "Qeiza Official Store" }
+                ]
+              },
+              qris: {
+                isActive: true,
+                qrisUrl: "https://images.unsplash.com/photo-1682337199105-0eaf38ae85fc?auto=format&fit=crop&w=500&q=80"
+              }
+            },
+            seoTitle: "Qeiza Mall - Belanja Mudah, Cepat, dan Terpercaya",
+            seoDescription: "Pusat perbelanjaan online terpercaya Qeiza Mall.",
+            contactPhone: "081234567890",
+            contactEmail: "cs@qeizamall.com",
+            bannerBadge: "✦ ESENSI KEANGGUNAN MODERN ✦",
+            bannerTitle: "Kurasi Gaya Hidup \nMinimalis Kreatif",
+            bannerDescription: "Kami mempersembahkan koleksi kurasi eksklusif dengan palet warna timeless dan kualitas material premium.",
+            bannerCtaText: "JELAJAHI PRODUK",
+            bannerImageUrl: ""
+          });
+        }
+        
+        try {
+          const logsData = await fetchStockLogsClient();
+          setStockLogs(logsData);
+        } catch (e) {
+          console.warn("Could not fetch stock logs from Firestore:", e);
+        }
+        
+        try {
+          const blogData = await fetchBlogPostsClient();
+          setBlogPosts(blogData);
+        } catch (e) {
+          console.warn("Could not fetch blog posts from Firestore:", e);
+        }
+
+        setIsDirectFirestore(true);
+        setIsOfflineMode(false);
+        console.log("Direct Firestore client-side connection established successfully.");
+        return;
+      } catch (firestoreErr) {
+        console.error("Direct Firestore client-side connection failed. Falling back to local storage.", firestoreErr);
+      }
+
       setIsOfflineMode(true);
+      setIsDirectFirestore(false);
 
       // Load products
       const savedProducts = localStorage.getItem("qeiza_fallback_products");
@@ -519,6 +608,30 @@ export default function App() {
         setOrders(nextOrders);
         localStorage.setItem("qeiza_fallback_orders", JSON.stringify(nextOrders));
         order = created;
+      } else if (isDirectFirestore) {
+        if (!orderPayload.invoice) {
+          try {
+            const { saveOrderClient } = await import("./lib/firebase");
+            const mockInvoice = "INV-" + new Date().toISOString().slice(0, 10).replace(/-/g, "") + "-" + Math.floor(1000 + Math.random() * 9000);
+            const created: Order = {
+              ...orderPayload,
+              id: "ord-" + Date.now(),
+              invoice: mockInvoice,
+              createdAt: new Date().toISOString(),
+              paymentStatus: "unpaid",
+              status: "pending",
+              trackingNo: null,
+              trackingImage: null,
+              paymentProof: null
+            };
+            await saveOrderClient(created);
+            order = created;
+          } catch (err) {
+            console.error("Error creating order directly in Firestore:", err);
+            alert("Gagal membuat pesanan secara langsung di database cloud.");
+            return;
+          }
+        }
       } else {
         // If orderPayload does NOT have an invoice, it's a raw checkout payload, we need to POST it.
         if (!orderPayload.invoice) {
@@ -601,6 +714,20 @@ export default function App() {
       localStorage.setItem("qeiza_fallback_orders", JSON.stringify(next));
       return;
     }
+    if (isDirectFirestore) {
+      try {
+        const { saveOrderClient } = await import("./lib/firebase");
+        const oldOrder = orders.find(o => o.id === orderId);
+        if (oldOrder) {
+          const updated = { ...oldOrder, ...updates };
+          await saveOrderClient(updated);
+          fetchAllData();
+        }
+      } catch (err) {
+        console.error("Error updating order directly in Firestore:", err);
+      }
+      return;
+    }
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: "PUT",
@@ -621,6 +748,17 @@ export default function App() {
       setOrders(next);
       localStorage.setItem("qeiza_fallback_orders", JSON.stringify(next));
       return true;
+    }
+    if (isDirectFirestore) {
+      try {
+        const { deleteOrderClient } = await import("./lib/firebase");
+        await deleteOrderClient(orderId);
+        fetchAllData();
+        return true;
+      } catch (err) {
+        console.error("Error deleting order directly in Firestore:", err);
+        return false;
+      }
     }
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
@@ -649,6 +787,39 @@ export default function App() {
       localStorage.setItem("qeiza_fallback_products", JSON.stringify(next));
       return;
     }
+    if (isDirectFirestore) {
+      try {
+        const { saveProductClient, saveStockLogClient } = await import("./lib/firebase");
+        const newProduct = {
+          id: `prod-${Date.now()}`,
+          ...productData,
+          stock: Number(productData.stock || 0),
+          costPrice: Number(productData.costPrice || 0),
+          price: Number(productData.price || 0),
+          promoPrice: productData.promoPrice ? Number(productData.promoPrice) : null,
+          weight: Number(productData.weight || 0),
+          minStock: Number(productData.minStock || 5),
+          isActive: typeof productData.isActive === "boolean" ? productData.isActive : true,
+          discount: productData.promoPrice ? Math.round(((productData.price - productData.promoPrice) / productData.price) * 100) : 0
+        };
+        await saveProductClient(newProduct);
+        
+        const stockLog = {
+          id: `log-${Date.now()}`,
+          productId: newProduct.id,
+          productName: newProduct.name,
+          type: "in" as const,
+          quantity: newProduct.stock,
+          reason: "Pendaftaran produk baru",
+          createdAt: new Date().toISOString()
+        };
+        await saveStockLogClient(stockLog);
+        fetchAllData();
+      } catch (err) {
+        console.error("Error saving product directly in Firestore:", err);
+      }
+      return;
+    }
     try {
       const res = await fetch("/api/products", {
         method: "POST",
@@ -675,6 +846,44 @@ export default function App() {
       localStorage.setItem("qeiza_fallback_products", JSON.stringify(next));
       return;
     }
+    if (isDirectFirestore) {
+      try {
+        const { saveProductClient, saveStockLogClient } = await import("./lib/firebase");
+        const oldProduct = products.find(p => p.id === prodId);
+        if (oldProduct) {
+          const merged = {
+            ...oldProduct,
+            ...updates,
+            stock: Number(updates.stock ?? oldProduct.stock),
+            costPrice: Number(updates.costPrice ?? oldProduct.costPrice),
+            price: Number(updates.price ?? oldProduct.price),
+            promoPrice: updates.promoPrice === null ? null : (updates.promoPrice ? Number(updates.promoPrice) : oldProduct.promoPrice),
+            weight: Number(updates.weight ?? oldProduct.weight),
+            minStock: Number(updates.minStock ?? oldProduct.minStock),
+          };
+          merged.discount = merged.promoPrice ? Math.round(((merged.price - merged.promoPrice) / merged.price) * 100) : 0;
+          await saveProductClient(merged);
+
+          const stockDiff = merged.stock - oldProduct.stock;
+          if (stockDiff !== 0) {
+            const stockLog = {
+              id: `log-${Date.now()}`,
+              productId: merged.id,
+              productName: merged.name,
+              type: stockDiff > 0 ? "in" as const : "out" as const,
+              quantity: Math.abs(stockDiff),
+              reason: `Koreksi stok manual (penyesuaian)`,
+              createdAt: new Date().toISOString()
+            };
+            await saveStockLogClient(stockLog);
+          }
+          fetchAllData();
+        }
+      } catch (err) {
+        console.error("Error updating product directly in Firestore:", err);
+      }
+      return;
+    }
     try {
       const res = await fetch(`/api/products/${prodId}`, {
         method: "PUT",
@@ -692,6 +901,16 @@ export default function App() {
       const next = products.filter(p => p.id !== prodId);
       setProducts(next);
       localStorage.setItem("qeiza_fallback_products", JSON.stringify(next));
+      return;
+    }
+    if (isDirectFirestore) {
+      try {
+        const { deleteProductClient } = await import("./lib/firebase");
+        await deleteProductClient(prodId);
+        fetchAllData();
+      } catch (err) {
+        console.error("Error deleting product directly in Firestore:", err);
+      }
       return;
     }
     try {
@@ -715,6 +934,20 @@ export default function App() {
       localStorage.setItem("qeiza_fallback_promos", JSON.stringify(next));
       return;
     }
+    if (isDirectFirestore) {
+      try {
+        const { savePromoClient } = await import("./lib/firebase");
+        const newPromo = {
+          ...promoData,
+          id: promoData.id || "prm-" + Date.now()
+        };
+        await savePromoClient(newPromo);
+        fetchAllData();
+      } catch (err) {
+        console.error("Error adding promo directly in Firestore:", err);
+      }
+      return;
+    }
     try {
       const res = await fetch("/api/promos", {
         method: "POST",
@@ -734,6 +967,16 @@ export default function App() {
       localStorage.setItem("qeiza_fallback_promos", JSON.stringify(next));
       return;
     }
+    if (isDirectFirestore) {
+      try {
+        const { deletePromoClient } = await import("./lib/firebase");
+        await deletePromoClient(promoId);
+        fetchAllData();
+      } catch (err) {
+        console.error("Error deleting promo directly in Firestore:", err);
+      }
+      return;
+    }
     try {
       const res = await fetch(`/api/promos/${promoId}`, {
         method: "DELETE"
@@ -750,6 +993,19 @@ export default function App() {
         const next = { ...settings, ...updates };
         setSettings(next);
         localStorage.setItem("qeiza_fallback_settings", JSON.stringify(next));
+      }
+      return;
+    }
+    if (isDirectFirestore) {
+      try {
+        const { saveSettingsClient } = await import("./lib/firebase");
+        if (settings) {
+          const next = { ...settings, ...updates };
+          await saveSettingsClient(next);
+          setSettings(next);
+        }
+      } catch (err) {
+        console.error("Error saving settings directly in Firestore:", err);
       }
       return;
     }
