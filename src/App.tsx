@@ -498,6 +498,85 @@ export default function App() {
     }
   };
 
+  // Helper to track Meta Pixel Event safely
+  const trackMetaEvent = (eventName: string, properties?: any) => {
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      try {
+        (window as any).fbq('track', eventName, properties);
+        console.log(`[Meta Pixel] Event Tracked: ${eventName}`, properties);
+      } catch (err) {
+        console.warn("Failed to track event:", eventName, err);
+      }
+    }
+  };
+
+  // Load and initialize Meta Pixel (Facebook Pixel) dynamically if ID is set
+  useEffect(() => {
+    const pixelId = settings?.metaPixelId;
+    if (pixelId && typeof window !== "undefined") {
+      console.log(`[Meta Pixel] Initializing Pixel ID: ${pixelId}`);
+      try {
+        const f = window as any;
+        const b = document;
+        const e = "script";
+        const v = "https://connect.facebook.net/en_US/fbevents.js";
+        
+        if (!f.fbq) {
+          const n: any = f.fbq = function(...args: any[]) {
+            n.callMethod ? n.callMethod.apply(n, args) : n.queue.push(args);
+          };
+          if (!f._fbq) f._fbq = n;
+          n.push = n;
+          n.loaded = !0;
+          n.version = '2.0';
+          n.queue = [];
+          
+          const t = b.createElement(e) as HTMLScriptElement;
+          t.async = !0;
+          t.src = v;
+          const s = b.getElementsByTagName(e)[0];
+          if (s && s.parentNode) {
+            s.parentNode.insertBefore(t, s);
+          } else {
+            b.head.appendChild(t);
+          }
+        }
+        
+        f.fbq('init', pixelId);
+        f.fbq('track', 'PageView');
+      } catch (err) {
+        console.error("Meta Pixel initialization failed:", err);
+      }
+    }
+  }, [settings?.metaPixelId]);
+
+  // Track product view (ViewContent)
+  useEffect(() => {
+    if (selectedProduct) {
+      trackMetaEvent("ViewContent", {
+        content_name: selectedProduct.name,
+        content_category: selectedProduct.category,
+        content_ids: [selectedProduct.id],
+        content_type: "product",
+        value: selectedProduct.promoPrice || selectedProduct.price,
+        currency: "IDR"
+      });
+    }
+  }, [selectedProduct]);
+
+  // Track checkout initiation (InitiateCheckout)
+  useEffect(() => {
+    if (isCartOpen && cart.length > 0) {
+      trackMetaEvent("InitiateCheckout", {
+        num_items: cart.reduce((acc, it) => acc + it.quantity, 0),
+        value: cart.reduce((acc, it) => acc + (it.price * it.quantity), 0),
+        currency: "IDR",
+        content_ids: cart.map(it => it.productId),
+        content_type: "product"
+      });
+    }
+  }, [isCartOpen, cart]);
+
   useEffect(() => {
     fetchAllData();
   }, []);
@@ -525,6 +604,7 @@ export default function App() {
 
   // Add Item to shopping cart
   const handleAddToCart = (product: Product, quantity: number, color?: string, size?: string) => {
+    let resolvedPriceForTracking = product.promoPrice || product.price;
     setCart((prevCart) => {
       const existingIdx = prevCart.findIndex(
         (it) => it.productId === product.id && it.color === color && it.size === size
@@ -552,6 +632,7 @@ export default function App() {
             : variantInfo.price;
         }
       }
+      resolvedPriceForTracking = resolvedPrice;
 
       if (existingIdx > -1) {
         const nextCart = [...prevCart];
@@ -574,6 +655,17 @@ export default function App() {
         ];
       }
     });
+
+    // Send AddToCart event to Meta Pixel
+    trackMetaEvent("AddToCart", {
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: "product",
+      value: resolvedPriceForTracking * quantity,
+      currency: "IDR",
+      quantity: quantity
+    });
+
     alert(`Sukses menambahkan "${product.name}" ke Tas Belanja!`);
   };
 
@@ -653,6 +745,15 @@ export default function App() {
 
       // If we have a successful order, proceed to WhatsApp redirection & success state
       if (order && order.invoice) {
+        // Track Purchase event in Meta Pixel
+        trackMetaEvent("Purchase", {
+          content_type: "product",
+          content_ids: order.items.map((it: any) => it.productId),
+          value: order.total,
+          currency: "IDR",
+          num_items: order.items.reduce((acc: number, it: any) => acc + (it.quantity || 1), 0)
+        });
+
         setCart([]); // Clear shopping bag
         setIsCartOpen(false);
         if (!isOfflineMode) {

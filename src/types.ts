@@ -127,6 +127,7 @@ export interface Settings {
   collectionBadge?: string;
   flashSaleProductIds?: string[];
   reviews?: { id: string; name: string; stars: number; text: string; product: string; }[];
+  metaPixelId?: string;
 }
 
 export interface Promo {

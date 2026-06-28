@@ -143,6 +143,7 @@ export default function AdminSettings({ settings, onUpdateSettings, products = [
   // SEO
   const [seoTitle, setSeoTitle] = useState(settings.seoTitle || "");
   const [seoDescription, setSeoDescription] = useState(settings.seoDescription || "");
+  const [metaPixelId, setMetaPixelId] = useState(settings.metaPixelId || "");
 
   // Banner Editor states
   const [bannerBadge, setBannerBadge] = useState(settings.bannerBadge || "");
@@ -264,7 +265,8 @@ export default function AdminSettings({ settings, onUpdateSettings, products = [
       collectionTitle: collectionTitle.trim(),
       collectionBadge: collectionBadge.trim(),
       flashSaleProductIds,
-      reviews
+      reviews,
+      metaPixelId: metaPixelId.trim()
     };
 
     onUpdateSettings(updates);
@@ -1037,12 +1039,15 @@ export default function AdminSettings({ settings, onUpdateSettings, products = [
         </div>
       </div>
 
-      {/* 5. SEO Optimization metadata details */}
-      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-4">
-        <h3 className="text-base font-extrabold text-gray-950 border-b pb-3 flex items-center gap-2">
-          <Globe className="text-emerald-500 w-5 h-5" />
-          <span>Optimasi SEO Google & Meta Crawlers</span>
-        </h3>
+      {/* 5. SEO Optimization & Analytics tracking */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+        <div>
+          <h3 className="text-base font-extrabold text-gray-950 border-b pb-3 flex items-center gap-2">
+            <Globe className="text-emerald-500 w-5 h-5" />
+            <span>Optimasi SEO Google & Meta Crawlers</span>
+          </h3>
+          <p className="text-xs text-gray-400 mt-2">Atur judul dan deskripsi halaman untuk meningkatkan indeks pencarian Google, Bing, dan platform lainnya.</p>
+        </div>
 
         <div className="space-y-4 text-xs">
           <div>
@@ -1065,6 +1070,34 @@ export default function AdminSettings({ settings, onUpdateSettings, products = [
               onChange={(e) => setSeoDescription(e.target.value)}
               className="w-full p-3 border border-gray-200 rounded-xl font-semibold resize-none"
             />
+          </div>
+        </div>
+
+        <div className="border-t pt-5 space-y-4">
+          <div>
+            <h4 className="text-xs font-black text-gray-900 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-500" />
+              <span>Integrasi Iklan & Tracking Meta Pixel (Facebook Ads)</span>
+            </h4>
+            <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+              Pantau perilaku pengunjung secara real-time dan lacak efektivitas kampanye iklan Anda. Sistem akan otomatis mengirimkan event standard berikut:
+              <br />
+              <strong className="text-gray-700">PageView</strong> (Kunjungan Halaman), <strong className="text-gray-700">ViewContent</strong> (Membuka detail produk), <strong className="text-gray-700">AddToCart</strong> (Menambah ke Keranjang), <strong className="text-gray-700">InitiateCheckout</strong> (Membuka Form Pembayaran), dan <strong className="text-gray-700">Purchase</strong> (Konfirmasi Pesanan).
+            </p>
+          </div>
+
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Meta Pixel ID (15-16 Digit Angka)</label>
+            <input
+              type="text"
+              placeholder="Contoh: 1234567890123456"
+              value={metaPixelId}
+              onChange={(e) => setMetaPixelId(e.target.value)}
+              className="w-full p-3 border border-gray-200 rounded-xl font-mono text-xs font-bold text-blue-900 focus:ring-blue-500"
+            />
+            <span className="text-[9.5px] text-gray-400 mt-1.5 block leading-relaxed">
+              *Kosongkan jika belum memiliki Meta Pixel. Setelah Anda memasukkan Pixel ID di sini dan mengklik simpan di bawah, script pelacak akan langsung aktif di web toko Anda secara otomatis.
+            </span>
           </div>
         </div>
       </div>
