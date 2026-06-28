@@ -28,7 +28,7 @@ export interface Product {
   isMall?: boolean;
   shippingCity?: string;
   colorImages?: Record<string, string>; // Maps a color name to its variant base64/URL photo
-  variantPrices?: Record<string, { price: number; promoPrice: number | null; stock: number }>;
+  variantPrices?: Record<string, { price: number; promoPrice: number | null; stock: number; costPrice?: number }>;
 }
 
 export interface Address {
@@ -159,5 +159,34 @@ export interface CartItem {
   size: string | null;
   weight: number;
   images: string[];
+}
+
+export function getProductCheapestPrice(product: Product): { displayPrice: number; originalPrice: number; discountPercent: number; hasDiscount: boolean } {
+  const prices: { price: number; promoPrice: number | null }[] = [
+    { price: product.price, promoPrice: product.promoPrice }
+  ];
+  if (product.variantPrices) {
+    Object.values(product.variantPrices).forEach((v) => {
+      prices.push({ price: v.price, promoPrice: v.promoPrice });
+    });
+  }
+
+  let cheapestActivePrice = Infinity;
+  let correspondingOriginalPrice = product.price;
+
+  prices.forEach((item) => {
+    const active = item.promoPrice !== null ? item.promoPrice : item.price;
+    if (active < cheapestActivePrice) {
+      cheapestActivePrice = active;
+      correspondingOriginalPrice = item.price;
+    }
+  });
+
+  const displayPrice = cheapestActivePrice === Infinity ? product.price : cheapestActivePrice;
+  const originalPrice = correspondingOriginalPrice;
+  const hasDiscount = displayPrice < originalPrice;
+  const discountPercent = hasDiscount ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100) : 0;
+
+  return { displayPrice, originalPrice, discountPercent, hasDiscount };
 }
 

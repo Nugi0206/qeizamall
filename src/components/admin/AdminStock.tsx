@@ -55,7 +55,7 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
   const [shippingCity, setShippingCity] = useState("Jakarta Pusat");
   const [colorImages, setColorImages] = useState<Record<string, string>>({});
   const [tempColorImage, setTempColorImage] = useState<string | null>(null);
-  const [variantPrices, setVariantPrices] = useState<Record<string, { price: number; promoPrice: number | null; stock: number }>>({});
+  const [variantPrices, setVariantPrices] = useState<Record<string, { price: number; promoPrice: number | null; stock: number; costPrice?: number }>>({});
 
   const formatIDR = (num: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -988,7 +988,7 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-200 pb-3">
                   <div>
                     <h4 className="text-xs font-black text-zinc-800 uppercase tracking-wider">Atur Harga & Stok Per Varian</h4>
-                    <p className="text-[10px] text-zinc-500 font-semibold mt-0.5">Tentukan harga jual, promo, dan stok spesifik untuk setiap pilihan variasi.</p>
+                    <p className="text-[10px] text-zinc-500 font-semibold mt-0.5">Tentukan harga jual, harga modal, promo, dan stok spesifik untuk setiap pilihan variasi.</p>
                   </div>
                   <button
                     type="button"
@@ -1000,7 +1000,13 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
                           next[v] = {
                             price: price || 0,
                             promoPrice: promoPrice || null,
-                            stock: stock || 0
+                            stock: stock || 0,
+                            costPrice: costPrice || 0
+                          };
+                        } else {
+                          next[v] = {
+                            ...next[v],
+                            costPrice: next[v].costPrice ?? costPrice ?? 0
                           };
                         }
                       });
@@ -1014,7 +1020,7 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
                 
                 <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
                   {getActiveVariantsList().map((v) => {
-                    const currentVariant = variantPrices[v] || { price: price || 0, promoPrice: promoPrice || null, stock: stock || 0 };
+                    const currentVariant = variantPrices[v] || { price: price || 0, promoPrice: promoPrice || null, stock: stock || 0, costPrice: costPrice || 0 };
                     return (
                       <div key={v} className="bg-white p-3.5 rounded-xl border border-zinc-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                         <div className="min-w-0">
@@ -1024,6 +1030,29 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
                         </div>
                         
                         <div className="flex flex-wrap items-center gap-3">
+                          {/* Cost price input */}
+                          <div className="space-y-1">
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Harga Modal Varian</span>
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-2.5 text-xs text-zinc-400 font-bold">Rp</span>
+                              <input
+                                type="number"
+                                value={currentVariant.costPrice === undefined ? "" : currentVariant.costPrice}
+                                onChange={(e) => {
+                                  setVariantPrices({
+                                    ...variantPrices,
+                                    [v]: {
+                                      ...currentVariant,
+                                      costPrice: Number(e.target.value)
+                                    }
+                                  });
+                                }}
+                                placeholder="Contoh: 100000"
+                                className="w-28 text-xs font-bold pl-8 pr-2.5 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-right"
+                              />
+                            </div>
+                          </div>
+
                           {/* Jual price input */}
                           <div className="space-y-1">
                             <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Harga Jual Varian</span>

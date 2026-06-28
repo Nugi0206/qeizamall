@@ -4,7 +4,7 @@
  */
 
 import React from "react";
-import { Product } from "../types";
+import { Product, getProductCheapestPrice } from "../types";
 import { Star, ShieldAlert, BadgePercent, ArrowRight, MapPin, Truck } from "lucide-react";
 
 interface ProductCardProps {
@@ -55,14 +55,7 @@ export default function ProductCard({ product, onViewDetail, onBuyImmediate }: P
     }).format(num);
   };
 
-  const hasDiscount = product.promoPrice !== null && product.promoPrice < product.price;
-  const displayPrice = hasDiscount ? product.promoPrice! : product.price;
-  const originalPrice = product.price;
-  
-  // Calculate percentage dynamically
-  const discountPercent = hasDiscount 
-    ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100) 
-    : 0;
+  const { displayPrice, originalPrice, discountPercent, hasDiscount } = getProductCheapestPrice(product);
 
   return (
     <div 

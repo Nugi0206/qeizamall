@@ -5,17 +5,18 @@
 
 import { useState } from "react";
 import { Product } from "../types";
-import { X, ShoppingBag, Send, CreditCard, ChevronLeft, ChevronRight, Play, Info } from "lucide-react";
+import { X, ShoppingBag, Send, CreditCard, ChevronLeft, ChevronRight, Play, Info, Plus } from "lucide-react";
 
 interface ProductDetailModalProps {
   product: Product;
   allProducts: Product[];
   onClose: () => void;
   onInstantBuy: (product: Product, selectedColor: string | null, selectedSize: string | null) => void;
+  onAddToCart: (product: Product, selectedColor: string | null, selectedSize: string | null) => void;
   contactPhone: string;
 }
 
-export default function ProductDetailModal({ product, allProducts, onClose, onInstantBuy, contactPhone }: ProductDetailModalProps) {
+export default function ProductDetailModal({ product, allProducts, onClose, onInstantBuy, onAddToCart, contactPhone }: ProductDetailModalProps) {
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string | null>(
     product.colors && product.colors.length > 0 ? product.colors[0] : null
@@ -340,21 +341,31 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
             {/* Footer triggers */}
             <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3">
               <button
+                id="modal-add-to-cart-btn"
+                disabled={currentStock === 0}
+                onClick={() => onAddToCart(product, selectedColor, selectedSize)}
+                className="flex-1 py-4 px-5 rounded-2xl bg-white hover:bg-zinc-50 text-zinc-900 font-extrabold text-[15px] transition-all border-2 border-zinc-200 hover:border-zinc-300 flex items-center justify-center gap-2 disabled:bg-gray-50 disabled:text-gray-450 disabled:border-gray-100 disabled:cursor-not-allowed"
+              >
+                <Plus className="w-5 h-5 text-zinc-700" />
+                <span>+ Keranjang</span>
+              </button>
+
+              <button
                 id="modal-direct-buy-btn"
                 disabled={currentStock === 0}
                 onClick={() => onInstantBuy(product, selectedColor, selectedSize)}
-                className="flex-1 py-4.5 px-6 rounded-2xl bg-zinc-950 hover:bg-zinc-800 text-white font-extrabold text-[15px] transition-all shadow-lg hover:shadow-zinc-950/10 flex items-center justify-center gap-2.5 disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
+                className="flex-[1.5] py-4 px-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[15px] transition-all shadow-md flex items-center justify-center gap-2.5 disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
               >
                 <ShoppingBag className="w-5 h-5" />
-                <span>Beli Sekarang (Checkout Cepat)</span>
+                <span>Beli Sekarang (Checkout)</span>
               </button>
               
               <button
                 id="modal-wa-buy-btn"
                 onClick={handleWhatsAppOrder}
-                className="py-4.5 px-6 rounded-2xl bg-white hover:bg-zinc-50 text-zinc-900 font-extrabold text-[15px] transition-all border-2 border-zinc-200 hover:border-zinc-300 flex items-center justify-center gap-2"
+                className="flex-1 py-4 px-5 rounded-2xl bg-white hover:bg-zinc-50 text-zinc-700 font-extrabold text-[14px] transition-all border-2 border-zinc-200 hover:border-zinc-300 flex items-center justify-center gap-2"
               >
-                <Send className="w-5 h-5 rotate-[15deg] fill-current" />
+                <Send className="w-4 h-4 rotate-[15deg] fill-current" />
                 <span>Order via WA</span>
               </button>
             </div>

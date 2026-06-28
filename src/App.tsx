@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { Product, Order, Promo, Settings, BlogPost, StockLog, CartItem } from "./types";
+import { Product, Order, Promo, Settings, BlogPost, StockLog, CartItem, getProductCheapestPrice } from "./types";
 import ProductCard from "./components/ProductCard";
 import ProductDetailModal from "./components/ProductDetailModal";
 import CartAndCheckoutModal from "./components/CartAndCheckoutModal";
@@ -1422,46 +1422,51 @@ export default function App() {
                 {((settings?.flashSaleProductIds && settings.flashSaleProductIds.length > 0)
                   ? products.filter(p => settings.flashSaleProductIds.includes(p.id))
                   : products.filter(p => p.label === "promo").slice(0, 5)
-                ).map(prod => (
-                  <div 
-                    id={`flash-sale-product-card-${prod.id}`}
-                    key={prod.id} 
-                    className={`${storeTemplate === "midnight" ? "bg-slate-900/50" : "bg-gray-50/70"} p-2.5 rounded-2xl border ${st.border} flex flex-col justify-between space-y-2 cursor-pointer hover:shadow-md hover:border-rose-500/40 transition-all relative`}
-                    onClick={() => setSelectedProduct(prod)}
-                  >
-                    {prod.discount > 0 && (
-                      <span className="absolute top-2 left-2 text-[8px] bg-rose-500 text-white font-extrabold px-1.5 py-0.5 rounded uppercase z-10">
-                        -{prod.discount}%
-                      </span>
-                    )}
-
-                    <div className={`aspect-square rounded-xl ${st.cardBg} border ${st.border} overflow-hidden relative shrink-0`}>
-                      <img referrerPolicy="no-referrer" src={prod.images[0]} alt="" className="w-full h-full object-cover" />
-                      {prod.stock <= 4 && (
-                        <div className="absolute inset-x-0 bottom-0 bg-rose-600/95 text-white text-[8px] font-black text-center py-0.5 uppercase tracking-wider">
-                          Sisa {prod.stock}!
-                        </div>
+                ).map(prod => {
+                  const { displayPrice, originalPrice, discountPercent, hasDiscount } = getProductCheapestPrice(prod);
+                  return (
+                    <div 
+                      id={`flash-sale-product-card-${prod.id}`}
+                      key={prod.id} 
+                      className={`${storeTemplate === "midnight" ? "bg-slate-900/50" : "bg-gray-50/70"} p-2.5 rounded-2xl border ${st.border} flex flex-col justify-between space-y-2 cursor-pointer hover:shadow-md hover:border-rose-500/40 transition-all relative`}
+                      onClick={() => setSelectedProduct(prod)}
+                    >
+                      {hasDiscount && (
+                        <span className="absolute top-2 left-2 text-[8px] bg-rose-500 text-white font-extrabold px-1.5 py-0.5 rounded uppercase z-10">
+                          -{discountPercent}%
+                        </span>
                       )}
-                    </div>
 
-                    <div className="space-y-0.5">
-                      <h4 className={`text-[11px] font-bold ${st.textPrimary} line-clamp-1`}>{prod.name}</h4>
-                      <div className="flex items-baseline gap-1 font-mono">
-                        <span className={`text-xs font-black ${st.accentText}`}>{formatIDR(prod.promoPrice || prod.price)}</span>
-                        <span className={`text-[8px] ${st.textSecondary} line-through`}>{formatIDR(prod.price)}</span>
+                      <div className={`aspect-square rounded-xl ${st.cardBg} border ${st.border} overflow-hidden relative shrink-0`}>
+                        <img referrerPolicy="no-referrer" src={prod.images[0]} alt="" className="w-full h-full object-cover" />
+                        {prod.stock <= 4 && (
+                          <div className="absolute inset-x-0 bottom-0 bg-rose-600/95 text-white text-[8px] font-black text-center py-0.5 uppercase tracking-wider">
+                            Sisa {prod.stock}!
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-0.5">
+                        <h4 className={`text-[11px] font-bold ${st.textPrimary} line-clamp-1`}>{prod.name}</h4>
+                        <div className="flex items-baseline gap-1 font-mono">
+                          <span className={`text-xs font-black ${st.accentText}`}>{formatIDR(displayPrice)}</span>
+                          {hasDiscount && (
+                            <span className={`text-[8px] ${st.textSecondary} line-through`}>{formatIDR(originalPrice)}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <div className="h-1 w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${prod.stock <= 3 ? "bg-rose-500" : "bg-emerald-500"}`} 
+                            style={{ width: `${Math.min(100, (prod.stock / 10) * 100)}%` }} 
+                          />
+                        </div>
                       </div>
                     </div>
-
-                    <div className="space-y-1">
-                      <div className="h-1 w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full ${prod.stock <= 3 ? "bg-rose-500" : "bg-emerald-500"}`} 
-                          style={{ width: `${Math.min(100, (prod.stock / 10) * 100)}%` }} 
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </section>
@@ -1640,6 +1645,10 @@ export default function App() {
           onInstantBuy={(prod, color, size) => {
             handleAddToCart(prod, 1, color, size);
             setSelectedProduct(null);
+            setIsCartOpen(true);
+          }}
+          onAddToCart={(prod, color, size) => {
+            handleAddToCart(prod, 1, color, size);
           }}
           contactPhone={settings.contactPhone}
         />
@@ -1649,7 +1658,8 @@ export default function App() {
       {isCartOpen && (
         <CartAndCheckoutModal 
           cartItems={cart.map((it) => {
-            const foundProd = products.find((p) => p.id === it.productId) || ({
+            const foundProd = products.find((p) => p.id === it.productId);
+            let finalProd: Product = foundProd ? { ...foundProd } : ({
               id: it.productId,
               name: it.productName,
               price: it.price,
@@ -1669,8 +1679,34 @@ export default function App() {
               category: "Semua",
               subCategory: null,
             } as Product);
+
+            if (foundProd && foundProd.variantPrices) {
+              const color = it.color;
+              const size = it.size;
+              let variantInfo = null;
+              if (color && size) {
+                const comb1 = `${color}-${size}`;
+                const comb2 = `${size}-${color}`;
+                if (foundProd.variantPrices[comb1]) variantInfo = foundProd.variantPrices[comb1];
+                else if (foundProd.variantPrices[comb2]) variantInfo = foundProd.variantPrices[comb2];
+              }
+              if (!variantInfo && size && foundProd.variantPrices[size]) {
+                variantInfo = foundProd.variantPrices[size];
+              }
+              if (!variantInfo && color && foundProd.variantPrices[color]) {
+                variantInfo = foundProd.variantPrices[color];
+              }
+
+              if (variantInfo) {
+                finalProd.price = variantInfo.price;
+                finalProd.promoPrice = variantInfo.promoPrice;
+                if (variantInfo.costPrice !== undefined) {
+                  finalProd.costPrice = variantInfo.costPrice;
+                }
+              }
+            }
             return {
-              product: foundProd,
+              product: finalProd,
               quantity: it.quantity,
               color: it.color,
               size: it.size,
