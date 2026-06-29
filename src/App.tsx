@@ -886,7 +886,7 @@ export default function App() {
     }
   };
 
-  const handleAddProduct = async (productData: any) => {
+  const handleAddProduct = async (productData: any): Promise<boolean> => {
     if (isOfflineMode) {
       const createdItem = {
         ...productData,
@@ -896,7 +896,7 @@ export default function App() {
       const next = [...products, createdItem];
       setProducts(next);
       localStorage.setItem("qeiza_fallback_products", JSON.stringify(next));
-      return;
+      return true;
     }
     if (isDirectFirestore) {
       try {
@@ -925,11 +925,13 @@ export default function App() {
           createdAt: new Date().toISOString()
         };
         await saveStockLogClient(stockLog);
-        fetchAllData();
+        await fetchAllData();
+        return true;
       } catch (err) {
         console.error("Error saving product directly in Firestore:", err);
+        alert("Gagal menyimpan langsung ke Firestore: " + (err instanceof Error ? err.message : String(err)));
+        return false;
       }
-      return;
     }
     try {
       const res = await fetch("/api/products", {
@@ -937,13 +939,23 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(productData)
       });
-      if (res.ok) fetchAllData();
+      if (res.ok) {
+        await fetchAllData();
+        return true;
+      } else {
+        const errText = await res.text();
+        console.error("Server error when adding product:", res.status, errText);
+        alert(`Gagal menyimpan produk ke server (${res.status}): ${errText}`);
+        return false;
+      }
     } catch (err) {
       console.error(err);
+      alert("Koneksi gagal atau error sistem: " + (err instanceof Error ? err.message : String(err)));
+      return false;
     }
   };
 
-  const handleUpdateProduct = async (prodId: string, updates: any) => {
+  const handleUpdateProduct = async (prodId: string, updates: any): Promise<boolean> => {
     if (isOfflineMode) {
       const next = products.map(p => {
         if (p.id === prodId) {
@@ -955,7 +967,7 @@ export default function App() {
       });
       setProducts(next);
       localStorage.setItem("qeiza_fallback_products", JSON.stringify(next));
-      return;
+      return true;
     }
     if (isDirectFirestore) {
       try {
@@ -983,17 +995,20 @@ export default function App() {
               productName: merged.name,
               type: stockDiff > 0 ? "in" as const : "out" as const,
               quantity: Math.abs(stockDiff),
-              reason: `Koreksi stok manual (penyesuaian)`,
+              reason: updates.stockReason || `Koreksi stok manual (penyesuaian)`,
               createdAt: new Date().toISOString()
             };
             await saveStockLogClient(stockLog);
           }
-          fetchAllData();
+          await fetchAllData();
+          return true;
         }
+        return false;
       } catch (err) {
         console.error("Error updating product directly in Firestore:", err);
+        alert("Gagal memperbarui di Firestore: " + (err instanceof Error ? err.message : String(err)));
+        return false;
       }
-      return;
     }
     try {
       const res = await fetch(`/api/products/${prodId}`, {
@@ -1001,9 +1016,19 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates)
       });
-      if (res.ok) fetchAllData();
+      if (res.ok) {
+        await fetchAllData();
+        return true;
+      } else {
+        const errText = await res.text();
+        console.error("Server error when updating product:", res.status, errText);
+        alert(`Gagal memperbarui produk di server (${res.status}): ${errText}`);
+        return false;
+      }
     } catch (err) {
       console.error(err);
+      alert("Koneksi gagal atau error sistem: " + (err instanceof Error ? err.message : String(err)));
+      return false;
     }
   };
 
@@ -1448,7 +1473,7 @@ export default function App() {
                       )}
 
                       <div className={`aspect-square rounded-xl ${st.cardBg} border ${st.border} overflow-hidden relative shrink-0`}>
-                        <img referrerPolicy="no-referrer" src={prod.images[0]} alt="" className="w-full h-full object-cover" />
+                        <img referrerPolicy="no-referrer" src={(prod.images && prod.images[0]) || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80"} alt="" className="w-full h-full object-cover" />
                         {prod.stock <= 4 && (
                           <div className="absolute inset-x-0 bottom-0 bg-rose-600/95 text-white text-[8px] font-black text-center py-0.5 uppercase tracking-wider">
                             Sisa {prod.stock}!

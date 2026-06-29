@@ -76,7 +76,7 @@ export default function ProductCard({ product, onViewDetail, onBuyImmediate }: P
       >
         <img 
           referrerPolicy="no-referrer"
-          src={product.images[0] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80"} 
+          src={(product.images && product.images[0]) || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80"} 
           alt={product.name} 
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />

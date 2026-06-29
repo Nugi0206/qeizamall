@@ -10,8 +10,8 @@ import { Search, Plus, Trash2, Edit2, AlertTriangle, ArrowUpRight, ArrowDownRigh
 interface AdminStockProps {
   products: Product[];
   stockLogs: StockLog[];
-  onAddProduct: (product: Omit<Product, "id">) => void;
-  onUpdateProduct: (id: string, updates: Partial<Product> & { stockReason?: string }) => void;
+  onAddProduct: (product: Omit<Product, "id">) => Promise<boolean>;
+  onUpdateProduct: (id: string, updates: Partial<Product> & { stockReason?: string }) => Promise<boolean>;
   onDeleteProduct: (id: string) => void;
 }
 
@@ -150,7 +150,7 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
     return list;
   };
 
-  const handleSaveProduct = (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name || !sku) {
@@ -185,16 +185,22 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
       variantPrices
     };
 
+    let success = false;
     if (isCreating) {
-      onAddProduct(payload);
-      alert("Berhasil mendaftarkan produk baru!");
+      success = await onAddProduct(payload);
+      if (success) {
+        alert("Berhasil mendaftarkan produk baru!");
+        setIsCreating(false);
+        setEditingProduct(null);
+      }
     } else if (editingProduct) {
-      onUpdateProduct(editingProduct.id, payload);
-      alert("Detail produk berhasil diperbarui!");
+      success = await onUpdateProduct(editingProduct.id, payload);
+      if (success) {
+        alert("Detail produk berhasil diperbarui!");
+        setIsCreating(false);
+        setEditingProduct(null);
+      }
     }
-
-    setIsCreating(false);
-    setEditingProduct(null);
   };
 
   const handleQuickAdjustStock = (e: React.FormEvent) => {
@@ -234,8 +240,8 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
   };
 
   const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.sku.toLowerCase().includes(searchQuery.toLowerCase())
+    (p.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.sku || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getProductPriceRange = (p: Product) => {
@@ -364,7 +370,7 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
                             <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
                               <img 
                                 referrerPolicy="no-referrer"
-                                src={p.images[0]} 
+                                src={(p.images && p.images[0]) || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80"} 
                                 alt="" 
                                 className="w-full h-full object-cover" 
                               />

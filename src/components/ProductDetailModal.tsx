@@ -98,11 +98,13 @@ export default function ProductDetailModal({ product, allProducts, onClose, onIn
     .slice(0, 3);
 
   const handleNextImage = () => {
-    setActiveImageIdx((prev) => (prev + 1) % product.images.length);
+    const imagesLen = (product.images || []).length || 1;
+    setActiveImageIdx((prev) => (prev + 1) % imagesLen);
   };
 
   const handlePrevImage = () => {
-    setActiveImageIdx((prev) => (prev - 1 + product.images.length) % product.images.length);
+    const imagesLen = (product.images || []).length || 1;
+    setActiveImageIdx((prev) => (prev - 1 + imagesLen) % imagesLen);
   };
 
   // WhatsApp helper text trigger
@@ -160,14 +162,14 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
                 ) : (
                   <img 
                     referrerPolicy="no-referrer"
-                    src={selectedColor && product.colorImages?.[selectedColor] ? product.colorImages[selectedColor] : (product.images[activeImageIdx] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80")} 
+                    src={selectedColor && product.colorImages?.[selectedColor] ? product.colorImages[selectedColor] : ((product.images && product.images[activeImageIdx]) || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80")} 
                     alt={product.name} 
                     className="w-full h-full object-cover"
                   />
                 )}
 
                 {/* Left-right Chevron controllers */}
-                {!showVideo && product.images.length > 1 && (
+                {!showVideo && product.images && product.images.length > 1 && (
                   <>
                     <button 
                       onClick={handlePrevImage}
@@ -201,7 +203,7 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
               </div>
 
               {/* Slider thumb indexes */}
-              {!showVideo && product.images.length > 1 && (
+              {!showVideo && product.images && product.images.length > 1 && (
                 <div className="flex gap-2 justify-center overflow-x-auto pb-1">
                   {product.images.map((img, idx) => (
                     <button
@@ -421,7 +423,7 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
                     <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-50 shrink-0">
                       <img 
                         referrerPolicy="no-referrer"
-                        src={rel.images[0]} 
+                        src={(rel.images && rel.images[0]) || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80"} 
                         alt={rel.name} 
                         className="w-full h-full object-cover" 
                       />
