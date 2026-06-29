@@ -59,9 +59,33 @@ export default function ProductDetailModal({ product, allProducts, onClose, onIn
     return null;
   };
 
+  const getCheapestVariantPriceFallback = () => {
+    if (!product.variantPrices) return { price: product.price, promoPrice: product.promoPrice };
+    let cheapestPrice = Infinity;
+    let cheapestPromo: number | null = null;
+    Object.values(product.variantPrices).forEach(v => {
+      if (v.price > 0 && v.price < cheapestPrice) {
+        cheapestPrice = v.price;
+        cheapestPromo = v.promoPrice || null;
+      }
+    });
+    if (cheapestPrice !== Infinity) {
+      return { price: cheapestPrice, promoPrice: cheapestPromo };
+    }
+    return { price: product.price, promoPrice: product.promoPrice };
+  };
+
   const variantInfo = getSelectedVariantInfo();
-  const originalPrice = variantInfo && variantInfo.price !== undefined ? variantInfo.price : product.price;
-  const promoPrice = variantInfo && variantInfo.hasOwnProperty("promoPrice") ? variantInfo.promoPrice : product.promoPrice;
+  const cheapestFallback = getCheapestVariantPriceFallback();
+
+  const originalPrice = variantInfo && variantInfo.price !== undefined && variantInfo.price > 0
+    ? variantInfo.price 
+    : (cheapestFallback.price > 0 ? cheapestFallback.price : product.price);
+
+  const promoPrice = variantInfo && variantInfo.price !== undefined && variantInfo.price > 0
+    ? (variantInfo.hasOwnProperty("promoPrice") ? variantInfo.promoPrice : null)
+    : (cheapestFallback.price > 0 ? cheapestFallback.promoPrice : product.promoPrice);
+
   const currentStock = variantInfo && variantInfo.stock !== undefined ? variantInfo.stock : product.stock;
 
   const hasDiscount = promoPrice !== null && promoPrice < originalPrice;

@@ -165,24 +165,28 @@ export default function App() {
       const productsData = await pRes.json();
       if (!Array.isArray(productsData)) throw new Error("Products data is not an array");
       setProducts(productsData);
+      localStorage.setItem("qeiza_fallback_products", JSON.stringify(productsData));
 
       const oRes = await fetch("/api/orders");
       if (!oRes.ok) throw new Error("Failed to fetch orders");
       const ordersData = await oRes.json();
       if (!Array.isArray(ordersData)) throw new Error("Orders data is not an array");
       setOrders(ordersData);
+      localStorage.setItem("qeiza_fallback_orders", JSON.stringify(ordersData));
 
       const prRes = await fetch("/api/promos");
       if (!prRes.ok) throw new Error("Failed to fetch promos");
       const promosData = await prRes.json();
       if (!Array.isArray(promosData)) throw new Error("Promos data is not an array");
       setPromos(promosData);
+      localStorage.setItem("qeiza_fallback_promos", JSON.stringify(promosData));
 
       const sRes = await fetch("/api/settings");
       if (!sRes.ok) throw new Error("Failed to fetch settings");
       const settingsData = await sRes.json();
       if (!settingsData || typeof settingsData !== "object") throw new Error("Settings data is invalid");
       setSettings(settingsData);
+      localStorage.setItem("qeiza_fallback_settings", JSON.stringify(settingsData));
 
       const bRes = await fetch("/api/blog-posts");
       if (!bRes.ok) throw new Error("Failed to fetch blog posts");
@@ -212,18 +216,22 @@ export default function App() {
         
         const productsData = await fetchProductsClient();
         setProducts(productsData);
+        localStorage.setItem("qeiza_fallback_products", JSON.stringify(productsData));
         
         const ordersData = await fetchOrdersClient();
         setOrders(ordersData);
+        localStorage.setItem("qeiza_fallback_orders", JSON.stringify(ordersData));
         
         const promosData = await fetchPromosClient();
         setPromos(promosData);
+        localStorage.setItem("qeiza_fallback_promos", JSON.stringify(promosData));
         
         const settingsData = await fetchSettingsClient();
         if (settingsData) {
           setSettings(settingsData);
+          localStorage.setItem("qeiza_fallback_settings", JSON.stringify(settingsData));
         } else {
-          setSettings({
+          const defaultSettings = {
             logoUrl: "",
             heroBanners: [
               "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=80",
@@ -261,7 +269,9 @@ export default function App() {
             bannerDescription: "Kami mempersembahkan koleksi kurasi eksklusif dengan palet warna timeless dan kualitas material premium.",
             bannerCtaText: "JELAJAHI PRODUK",
             bannerImageUrl: ""
-          });
+          };
+          setSettings(defaultSettings);
+          localStorage.setItem("qeiza_fallback_settings", JSON.stringify(defaultSettings));
         }
         
         try {
