@@ -59,33 +59,9 @@ export default function ProductDetailModal({ product, allProducts, onClose, onIn
     return null;
   };
 
-  const getCheapestVariantPriceFallback = () => {
-    if (!product.variantPrices) return { price: product.price, promoPrice: product.promoPrice };
-    let cheapestPrice = Infinity;
-    let cheapestPromo: number | null = null;
-    Object.values(product.variantPrices).forEach(v => {
-      if (v.price > 0 && v.price < cheapestPrice) {
-        cheapestPrice = v.price;
-        cheapestPromo = v.promoPrice || null;
-      }
-    });
-    if (cheapestPrice !== Infinity) {
-      return { price: cheapestPrice, promoPrice: cheapestPromo };
-    }
-    return { price: product.price, promoPrice: product.promoPrice };
-  };
-
   const variantInfo = getSelectedVariantInfo();
-  const cheapestFallback = getCheapestVariantPriceFallback();
-
-  const originalPrice = variantInfo && variantInfo.price !== undefined && variantInfo.price > 0
-    ? variantInfo.price 
-    : (cheapestFallback.price > 0 ? cheapestFallback.price : product.price);
-
-  const promoPrice = variantInfo && variantInfo.price !== undefined && variantInfo.price > 0
-    ? (variantInfo.hasOwnProperty("promoPrice") ? variantInfo.promoPrice : null)
-    : (cheapestFallback.price > 0 ? cheapestFallback.promoPrice : product.promoPrice);
-
+  const originalPrice = variantInfo && variantInfo.price !== undefined ? variantInfo.price : product.price;
+  const promoPrice = variantInfo && variantInfo.hasOwnProperty("promoPrice") ? variantInfo.promoPrice : product.promoPrice;
   const currentStock = variantInfo && variantInfo.stock !== undefined ? variantInfo.stock : product.stock;
 
   const hasDiscount = promoPrice !== null && promoPrice < originalPrice;
@@ -98,13 +74,17 @@ export default function ProductDetailModal({ product, allProducts, onClose, onIn
     .slice(0, 3);
 
   const handleNextImage = () => {
-    const imagesLen = (product.images || []).length || 1;
-    setActiveImageIdx((prev) => (prev + 1) % imagesLen);
+    const len = product.images?.length ?? 0;
+    if (len > 0) {
+      setActiveImageIdx((prev) => (prev + 1) % len);
+    }
   };
 
   const handlePrevImage = () => {
-    const imagesLen = (product.images || []).length || 1;
-    setActiveImageIdx((prev) => (prev - 1 + imagesLen) % imagesLen);
+    const len = product.images?.length ?? 0;
+    if (len > 0) {
+      setActiveImageIdx((prev) => (prev - 1 + len) % len);
+    }
   };
 
   // WhatsApp helper text trigger
@@ -162,14 +142,14 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
                 ) : (
                   <img 
                     referrerPolicy="no-referrer"
-                    src={selectedColor && product.colorImages?.[selectedColor] ? product.colorImages[selectedColor] : ((product.images && product.images[activeImageIdx]) || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80")} 
+                    src={selectedColor && product.colorImages?.[selectedColor] ? product.colorImages[selectedColor] : (product.images?.[activeImageIdx] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80")} 
                     alt={product.name} 
                     className="w-full h-full object-cover"
                   />
                 )}
 
                 {/* Left-right Chevron controllers */}
-                {!showVideo && product.images && product.images.length > 1 && (
+                {!showVideo && (product.images?.length ?? 0) > 1 && (
                   <>
                     <button 
                       onClick={handlePrevImage}
@@ -203,9 +183,9 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
               </div>
 
               {/* Slider thumb indexes */}
-              {!showVideo && product.images && product.images.length > 1 && (
+              {!showVideo && (product.images?.length ?? 0) > 1 && (
                 <div className="flex gap-2 justify-center overflow-x-auto pb-1">
-                  {product.images.map((img, idx) => (
+                  {product.images?.map((img, idx) => (
                     <button
                       key={idx}
                       onClick={() => setActiveImageIdx(idx)}
@@ -423,7 +403,7 @@ Mohon info ketersediaan stoknya. Terima kasih!`;
                     <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-50 shrink-0">
                       <img 
                         referrerPolicy="no-referrer"
-                        src={(rel.images && rel.images[0]) || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80"} 
+                        src={rel.images?.[0] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80"} 
                         alt={rel.name} 
                         className="w-full h-full object-cover" 
                       />

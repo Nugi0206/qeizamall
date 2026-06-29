@@ -418,8 +418,8 @@ export default function CartAndCheckoutModal({
 
   // Auto set bank choice if bank transfers is active
   useEffect(() => {
-    if (settings.activePayments.transferBank.isActive && settings.activePayments.transferBank.accounts.length > 0) {
-      setSelectedBank(settings.activePayments.transferBank.accounts[0].bankName);
+    if (settings?.activePayments?.transferBank?.isActive && (settings?.activePayments?.transferBank?.accounts?.length ?? 0) > 0) {
+      setSelectedBank(settings.activePayments.transferBank.accounts[0]?.bankName || "");
     }
   }, [settings]);
 
@@ -521,7 +521,7 @@ export default function CartAndCheckoutModal({
               <div className="w-16 h-16 rounded-lg border border-zinc-200 bg-white relative flex-shrink-0">
                 <img 
                   referrerPolicy="no-referrer"
-                  src={(item.product.images && item.product.images[0]) || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80"} 
+                  src={item.product.images?.[0] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80"} 
                   alt={item.product.name} 
                   className="w-full h-full object-cover rounded-lg" 
                 />

@@ -10,8 +10,8 @@ import { Search, Plus, Trash2, Edit2, AlertTriangle, ArrowUpRight, ArrowDownRigh
 interface AdminStockProps {
   products: Product[];
   stockLogs: StockLog[];
-  onAddProduct: (product: Omit<Product, "id">) => Promise<boolean>;
-  onUpdateProduct: (id: string, updates: Partial<Product> & { stockReason?: string }) => Promise<boolean>;
+  onAddProduct: (product: Omit<Product, "id">) => void;
+  onUpdateProduct: (id: string, updates: Partial<Product> & { stockReason?: string }) => void;
   onDeleteProduct: (id: string) => void;
 }
 
@@ -150,7 +150,7 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
     return list;
   };
 
-  const handleSaveProduct = async (e: React.FormEvent) => {
+  const handleSaveProduct = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name || !sku) {
@@ -178,29 +178,23 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
       isActive: true,
       videoUrl: videoUrl,
       adVideoUrl: null,
-      discount: (price && price > 0 && promoPrice) ? Math.round(((price - promoPrice) / price) * 100) : 0,
+      discount: promoPrice ? Math.round(((price - promoPrice) / price) * 100) : 0,
       isMall,
       shippingCity: shippingCity.trim() || "Jakarta Pusat",
       colorImages,
       variantPrices
     };
 
-    let success = false;
     if (isCreating) {
-      success = await onAddProduct(payload);
-      if (success) {
-        alert("Berhasil mendaftarkan produk baru!");
-        setIsCreating(false);
-        setEditingProduct(null);
-      }
+      onAddProduct(payload);
+      alert("Berhasil mendaftarkan produk baru!");
     } else if (editingProduct) {
-      success = await onUpdateProduct(editingProduct.id, payload);
-      if (success) {
-        alert("Detail produk berhasil diperbarui!");
-        setIsCreating(false);
-        setEditingProduct(null);
-      }
+      onUpdateProduct(editingProduct.id, payload);
+      alert("Detail produk berhasil diperbarui!");
     }
+
+    setIsCreating(false);
+    setEditingProduct(null);
   };
 
   const handleQuickAdjustStock = (e: React.FormEvent) => {
@@ -240,55 +234,9 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
   };
 
   const filteredProducts = products.filter(p => 
-    (p.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (p.sku || "").toLowerCase().includes(searchQuery.toLowerCase())
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.sku.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const getProductPriceRange = (p: Product) => {
-    const sellingPrices: number[] = [];
-    const costPrices: number[] = [];
-
-    const baseSelling = p.promoPrice || p.price;
-    if (baseSelling > 0) {
-      sellingPrices.push(baseSelling);
-    } else if (p.price > 0) {
-      sellingPrices.push(p.price);
-    }
-    if (p.costPrice > 0) {
-      costPrices.push(p.costPrice);
-    }
-
-    if (p.variantPrices) {
-      Object.values(p.variantPrices).forEach(v => {
-        const vSell = v.promoPrice || v.price;
-        if (vSell > 0) {
-          sellingPrices.push(vSell);
-        }
-        if (v.costPrice && v.costPrice > 0) {
-          costPrices.push(v.costPrice);
-        }
-      });
-    }
-
-    const uniqueSell = Array.from(new Set(sellingPrices)).sort((a, b) => a - b);
-    const uniqueCost = Array.from(new Set(costPrices)).sort((a, b) => a - b);
-
-    let sellText = formatIDR(p.promoPrice || p.price);
-    if (uniqueSell.length > 1) {
-      sellText = `${formatIDR(uniqueSell[0])} - ${formatIDR(uniqueSell[uniqueSell.length - 1])}`;
-    } else if (uniqueSell.length === 1) {
-      sellText = formatIDR(uniqueSell[0]);
-    }
-
-    let costText = formatIDR(p.costPrice);
-    if (uniqueCost.length > 1) {
-      costText = `${formatIDR(uniqueCost[0])} - ${formatIDR(uniqueCost[uniqueCost.length - 1])}`;
-    } else if (uniqueCost.length === 1) {
-      costText = formatIDR(uniqueCost[0]);
-    }
-
-    return { sellText, costText };
-  };
 
   return (
     <div className="space-y-6 no-print">
@@ -361,45 +309,48 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
                       </td>
                     </tr>
                   ) : (
-                    filteredProducts.map(p => {
-                      const { sellText, costText } = getProductPriceRange(p);
-                      return (
-                        <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
-                          {/* Photo details */}
-                          <td className="p-4 pl-6 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
-                              <img 
-                                referrerPolicy="no-referrer"
-                                src={(p.images && p.images[0]) || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80"} 
-                                alt="" 
-                                className="w-full h-full object-cover" 
-                              />
-                            </div>
-                            <div>
-                              <span className="font-bold text-gray-900 block line-clamp-1">{p.name}</span>
-                              <span className="text-[10px] font-mono text-gray-400 mt-0.5">Berat: {p.weight}g</span>
-                            </div>
-                          </td>
+                    filteredProducts.map(p => (
+                      <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
+                        {/* Photo details */}
+                        <td className="p-4 pl-6 flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
+                            <img 
+                              referrerPolicy="no-referrer"
+                              src={p.images?.[0] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80"} 
+                              alt="" 
+                              className="w-full h-full object-cover" 
+                            />
+                          </div>
+                          <div>
+                            <span className="font-bold text-gray-900 block line-clamp-1">{p.name}</span>
+                            <span className="text-[10px] font-mono text-gray-400 mt-0.5">Berat: {p.weight}g</span>
+                          </div>
+                        </td>
 
-                          {/* SKU */}
-                          <td className="p-4 font-mono font-bold text-gray-800 uppercase tracking-wider">
-                            {p.sku}
-                          </td>
+                        {/* SKU */}
+                        <td className="p-4 font-mono font-bold text-gray-800 uppercase tracking-wider">
+                          {p.sku}
+                        </td>
 
-                          {/* Category */}
-                          <td className="p-4 font-semibold text-gray-550">
-                            {p.category}
-                          </td>
+                        {/* Category */}
+                        <td className="p-4 font-semibold text-gray-550">
+                          {p.category}
+                        </td>
 
-                          {/* Cost Price */}
-                          <td className="p-4 font-bold text-gray-900">
-                            {costText}
-                          </td>
+                        {/* Cost Price */}
+                        <td className="p-4 font-bold text-gray-900">
+                          {formatIDR(p.costPrice)}
+                        </td>
 
-                          {/* Selling Price */}
-                          <td className="p-4 font-bold text-emerald-600">
-                            {sellText}
-                          </td>
+                        {/* Selling Price */}
+                        <td className="p-4 font-bold text-emerald-600">
+                          {formatIDR(p.promoPrice || p.price)}
+                          {p.promoPrice && (
+                            <span className="text-[9px] block text-gray-400 font-medium line-through">
+                              {formatIDR(p.price)}
+                            </span>
+                          )}
+                        </td>
 
                         {/* Inventory Levels */}
                         <td className="p-4">
@@ -461,9 +412,8 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
                           </div>
                         </td>
                       </tr>
-                    );
-                  })
-                )}
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

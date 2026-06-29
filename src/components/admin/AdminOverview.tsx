@@ -383,7 +383,7 @@ export default function AdminOverview({ orders, products, stockLogs }: AdminOver
                   <div className="w-10 h-10 rounded-xl overflow-hidden bg-white shrink-0 border border-amber-200">
                     <img 
                       referrerPolicy="no-referrer"
-                      src={(p.images && p.images[0]) || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80"} 
+                      src={p.images?.[0] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80"} 
                       alt="" 
                       className="w-full h-full object-cover" 
                     />

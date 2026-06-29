@@ -165,28 +165,24 @@ export default function App() {
       const productsData = await pRes.json();
       if (!Array.isArray(productsData)) throw new Error("Products data is not an array");
       setProducts(productsData);
-      localStorage.setItem("qeiza_fallback_products", JSON.stringify(productsData));
 
       const oRes = await fetch("/api/orders");
       if (!oRes.ok) throw new Error("Failed to fetch orders");
       const ordersData = await oRes.json();
       if (!Array.isArray(ordersData)) throw new Error("Orders data is not an array");
       setOrders(ordersData);
-      localStorage.setItem("qeiza_fallback_orders", JSON.stringify(ordersData));
 
       const prRes = await fetch("/api/promos");
       if (!prRes.ok) throw new Error("Failed to fetch promos");
       const promosData = await prRes.json();
       if (!Array.isArray(promosData)) throw new Error("Promos data is not an array");
       setPromos(promosData);
-      localStorage.setItem("qeiza_fallback_promos", JSON.stringify(promosData));
 
       const sRes = await fetch("/api/settings");
       if (!sRes.ok) throw new Error("Failed to fetch settings");
       const settingsData = await sRes.json();
       if (!settingsData || typeof settingsData !== "object") throw new Error("Settings data is invalid");
       setSettings(settingsData);
-      localStorage.setItem("qeiza_fallback_settings", JSON.stringify(settingsData));
 
       const bRes = await fetch("/api/blog-posts");
       if (!bRes.ok) throw new Error("Failed to fetch blog posts");
@@ -216,22 +212,18 @@ export default function App() {
         
         const productsData = await fetchProductsClient();
         setProducts(productsData);
-        localStorage.setItem("qeiza_fallback_products", JSON.stringify(productsData));
         
         const ordersData = await fetchOrdersClient();
         setOrders(ordersData);
-        localStorage.setItem("qeiza_fallback_orders", JSON.stringify(ordersData));
         
         const promosData = await fetchPromosClient();
         setPromos(promosData);
-        localStorage.setItem("qeiza_fallback_promos", JSON.stringify(promosData));
         
         const settingsData = await fetchSettingsClient();
         if (settingsData) {
           setSettings(settingsData);
-          localStorage.setItem("qeiza_fallback_settings", JSON.stringify(settingsData));
         } else {
-          const defaultSettings = {
+          setSettings({
             logoUrl: "",
             heroBanners: [
               "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=80",
@@ -269,9 +261,7 @@ export default function App() {
             bannerDescription: "Kami mempersembahkan koleksi kurasi eksklusif dengan palet warna timeless dan kualitas material premium.",
             bannerCtaText: "JELAJAHI PRODUK",
             bannerImageUrl: ""
-          };
-          setSettings(defaultSettings);
-          localStorage.setItem("qeiza_fallback_settings", JSON.stringify(defaultSettings));
+          });
         }
         
         try {
@@ -886,17 +876,17 @@ export default function App() {
     }
   };
 
-  const handleAddProduct = async (productData: any): Promise<boolean> => {
+  const handleAddProduct = async (productData: any) => {
     if (isOfflineMode) {
       const createdItem = {
         ...productData,
         id: "prod-" + Date.now(),
-        discount: (productData.price && productData.price > 0 && productData.promoPrice) ? Math.round(((productData.price - productData.promoPrice) / productData.price) * 100) : 0
+        discount: productData.promoPrice ? Math.round(((productData.price - productData.promoPrice) / productData.price) * 100) : 0
       };
       const next = [...products, createdItem];
       setProducts(next);
       localStorage.setItem("qeiza_fallback_products", JSON.stringify(next));
-      return true;
+      return;
     }
     if (isDirectFirestore) {
       try {
@@ -911,7 +901,7 @@ export default function App() {
           weight: Number(productData.weight || 0),
           minStock: Number(productData.minStock || 5),
           isActive: typeof productData.isActive === "boolean" ? productData.isActive : true,
-          discount: (productData.price && productData.price > 0 && productData.promoPrice) ? Math.round(((productData.price - productData.promoPrice) / productData.price) * 100) : 0
+          discount: productData.promoPrice ? Math.round(((productData.price - productData.promoPrice) / productData.price) * 100) : 0
         };
         await saveProductClient(newProduct);
         
@@ -925,13 +915,11 @@ export default function App() {
           createdAt: new Date().toISOString()
         };
         await saveStockLogClient(stockLog);
-        await fetchAllData();
-        return true;
+        fetchAllData();
       } catch (err) {
         console.error("Error saving product directly in Firestore:", err);
-        alert("Gagal menyimpan langsung ke Firestore: " + (err instanceof Error ? err.message : String(err)));
-        return false;
       }
+      return;
     }
     try {
       const res = await fetch("/api/products", {
@@ -939,35 +927,25 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(productData)
       });
-      if (res.ok) {
-        await fetchAllData();
-        return true;
-      } else {
-        const errText = await res.text();
-        console.error("Server error when adding product:", res.status, errText);
-        alert(`Gagal menyimpan produk ke server (${res.status}): ${errText}`);
-        return false;
-      }
+      if (res.ok) fetchAllData();
     } catch (err) {
       console.error(err);
-      alert("Koneksi gagal atau error sistem: " + (err instanceof Error ? err.message : String(err)));
-      return false;
     }
   };
 
-  const handleUpdateProduct = async (prodId: string, updates: any): Promise<boolean> => {
+  const handleUpdateProduct = async (prodId: string, updates: any) => {
     if (isOfflineMode) {
       const next = products.map(p => {
         if (p.id === prodId) {
           const merged = { ...p, ...updates };
-          merged.discount = (merged.price && merged.price > 0 && merged.promoPrice) ? Math.round(((merged.price - merged.promoPrice) / merged.price) * 100) : 0;
+          merged.discount = merged.promoPrice ? Math.round(((merged.price - merged.promoPrice) / merged.price) * 100) : 0;
           return merged;
         }
         return p;
       });
       setProducts(next);
       localStorage.setItem("qeiza_fallback_products", JSON.stringify(next));
-      return true;
+      return;
     }
     if (isDirectFirestore) {
       try {
@@ -984,7 +962,7 @@ export default function App() {
             weight: Number(updates.weight ?? oldProduct.weight),
             minStock: Number(updates.minStock ?? oldProduct.minStock),
           };
-          merged.discount = (merged.price && merged.price > 0 && merged.promoPrice) ? Math.round(((merged.price - merged.promoPrice) / merged.price) * 100) : 0;
+          merged.discount = merged.promoPrice ? Math.round(((merged.price - merged.promoPrice) / merged.price) * 100) : 0;
           await saveProductClient(merged);
 
           const stockDiff = merged.stock - oldProduct.stock;
@@ -995,20 +973,17 @@ export default function App() {
               productName: merged.name,
               type: stockDiff > 0 ? "in" as const : "out" as const,
               quantity: Math.abs(stockDiff),
-              reason: updates.stockReason || `Koreksi stok manual (penyesuaian)`,
+              reason: `Koreksi stok manual (penyesuaian)`,
               createdAt: new Date().toISOString()
             };
             await saveStockLogClient(stockLog);
           }
-          await fetchAllData();
-          return true;
+          fetchAllData();
         }
-        return false;
       } catch (err) {
         console.error("Error updating product directly in Firestore:", err);
-        alert("Gagal memperbarui di Firestore: " + (err instanceof Error ? err.message : String(err)));
-        return false;
       }
+      return;
     }
     try {
       const res = await fetch(`/api/products/${prodId}`, {
@@ -1016,19 +991,9 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates)
       });
-      if (res.ok) {
-        await fetchAllData();
-        return true;
-      } else {
-        const errText = await res.text();
-        console.error("Server error when updating product:", res.status, errText);
-        alert(`Gagal memperbarui produk di server (${res.status}): ${errText}`);
-        return false;
-      }
+      if (res.ok) fetchAllData();
     } catch (err) {
       console.error(err);
-      alert("Koneksi gagal atau error sistem: " + (err instanceof Error ? err.message : String(err)));
-      return false;
     }
   };
 
@@ -1473,7 +1438,7 @@ export default function App() {
                       )}
 
                       <div className={`aspect-square rounded-xl ${st.cardBg} border ${st.border} overflow-hidden relative shrink-0`}>
-                        <img referrerPolicy="no-referrer" src={(prod.images && prod.images[0]) || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80"} alt="" className="w-full h-full object-cover" />
+                        <img referrerPolicy="no-referrer" src={prod.images?.[0] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80"} alt="" className="w-full h-full object-cover" />
                         {prod.stock <= 4 && (
                           <div className="absolute inset-x-0 bottom-0 bg-rose-600/95 text-white text-[8px] font-black text-center py-0.5 uppercase tracking-wider">
                             Sisa {prod.stock}!

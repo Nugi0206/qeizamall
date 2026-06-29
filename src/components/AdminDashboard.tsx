@@ -33,8 +33,8 @@ interface AdminDashboardProps {
   onRefreshData: () => void;
   onUpdateOrderStatus: (orderId: string, updates: Partial<Order>) => void;
   onDeleteOrder: (orderId: string) => Promise<boolean>;
-  onAddProduct: (product: Omit<Product, "id">) => Promise<boolean>;
-  onUpdateProduct: (id: string, updates: Partial<Product>) => Promise<boolean>;
+  onAddProduct: (product: Omit<Product, "id">) => void;
+  onUpdateProduct: (id: string, updates: Partial<Product>) => void;
   onDeleteProduct: (id: string) => void;
   onAddPromo: (promo: Omit<Promo, "id"> & { id?: string }) => void;
   onDeletePromo: (id: string) => void;

@@ -162,68 +162,30 @@ export interface CartItem {
 }
 
 export function getProductCheapestPrice(product: Product): { displayPrice: number; originalPrice: number; discountPercent: number; hasDiscount: boolean } {
-  const activeVariants: string[] = [];
-  const colors = product.colors || [];
-  const sizes = product.sizes || [];
-  const activeColors = colors.filter(c => c && c.trim() !== "");
-  const activeSizes = sizes.filter(s => s && s.trim() !== "");
-  
-  if (activeColors.length > 0 && activeSizes.length > 0) {
-    activeColors.forEach(c => {
-      activeSizes.forEach(s => {
-        if (c.trim() === "Kombinasi" && s.trim() === "All Size") {
-          // skip
-        } else if (c.trim() === "Kombinasi") {
-          activeVariants.push(s.trim());
-        } else if (s.trim() === "All Size") {
-          activeVariants.push(c.trim());
-        } else {
-          activeVariants.push(`${c.trim()}-${s.trim()}`);
-        }
-      });
+  const prices: { price: number; promoPrice: number | null }[] = [
+    { price: product.price, promoPrice: product.promoPrice }
+  ];
+  if (product.variantPrices) {
+    Object.values(product.variantPrices).forEach((v) => {
+      prices.push({ price: v.price, promoPrice: v.promoPrice });
     });
-  } else if (activeColors.length > 0) {
-    activeColors.forEach(c => {
-      if (c.trim() !== "Kombinasi") activeVariants.push(c.trim());
-    });
-  } else if (activeSizes.length > 0) {
-    activeSizes.forEach(s => {
-      if (s.trim() !== "All Size") activeVariants.push(s.trim());
-    });
-  }
-
-  const prices: { price: number; promoPrice: number | null }[] = [];
-
-  // 1. Gather valid variant prices
-  if (product.variantPrices && activeVariants.length > 0) {
-    activeVariants.forEach((vKey) => {
-      const varInfo = product.variantPrices?.[vKey];
-      if (varInfo && varInfo.price > 0) {
-        prices.push({ price: varInfo.price, promoPrice: varInfo.promoPrice });
-      }
-    });
-  }
-
-  // 2. If no valid variant prices found, fall back to base product price
-  if (prices.length === 0 && product.price > 0) {
-    prices.push({ price: product.price, promoPrice: product.promoPrice });
   }
 
   let cheapestActivePrice = Infinity;
   let correspondingOriginalPrice = product.price;
 
   prices.forEach((item) => {
-    const active = item.promoPrice !== null && item.promoPrice > 0 ? item.promoPrice : item.price;
-    if (active > 0 && active < cheapestActivePrice) {
+    const active = item.promoPrice !== null ? item.promoPrice : item.price;
+    if (active < cheapestActivePrice) {
       cheapestActivePrice = active;
       correspondingOriginalPrice = item.price;
     }
   });
 
   const displayPrice = cheapestActivePrice === Infinity ? product.price : cheapestActivePrice;
-  const originalPrice = correspondingOriginalPrice > 0 ? correspondingOriginalPrice : product.price;
+  const originalPrice = correspondingOriginalPrice;
   const hasDiscount = displayPrice < originalPrice;
-  const discountPercent = hasDiscount && originalPrice > 0 ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100) : 0;
+  const discountPercent = hasDiscount ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100) : 0;
 
   return { displayPrice, originalPrice, discountPercent, hasDiscount };
 }

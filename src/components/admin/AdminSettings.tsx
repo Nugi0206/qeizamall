@@ -811,7 +811,7 @@ export default function AdminSettings({ settings, onUpdateSettings, products = [
                 return (
                   <div key={p.id} className="flex items-center justify-between p-3 hover:bg-gray-50/80 transition-colors">
                     <div className="flex items-center gap-2.5">
-                      <img referrerPolicy="no-referrer" src={(p.images && p.images[0]) || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80"} alt="" className="w-8 h-8 object-cover rounded border" />
+                      <img referrerPolicy="no-referrer" src={p.images?.[0] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80"} alt="" className="w-8 h-8 object-cover rounded border" />
                       <div>
                         <span className="text-xs font-bold text-gray-800 block leading-tight">{p.name}</span>
                         <span className="text-[9px] font-mono text-gray-400">SKU: {p.sku} · Rp {p.price.toLocaleString("id-ID")}</span>
