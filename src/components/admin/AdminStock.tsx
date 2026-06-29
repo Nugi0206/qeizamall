@@ -178,7 +178,7 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
       isActive: true,
       videoUrl: videoUrl,
       adVideoUrl: null,
-      discount: promoPrice ? Math.round(((price - promoPrice) / price) * 100) : 0,
+      discount: (price && price > 0 && promoPrice) ? Math.round(((price - promoPrice) / price) * 100) : 0,
       isMall,
       shippingCity: shippingCity.trim() || "Jakarta Pusat",
       colorImages,

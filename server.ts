@@ -498,6 +498,9 @@ app.post("/api/products", async (req, res) => {
       minStock: Number(req.body.minStock || 5),
       isActive: typeof req.body.isActive === "boolean" ? req.body.isActive : true,
     };
+    if (newProduct.discount === undefined || isNaN(newProduct.discount) || !isFinite(newProduct.discount)) {
+      newProduct.discount = 0;
+    }
 
     await setDoc(doc(firestoreDb, "products", newProduct.id), newProduct);
 
@@ -539,6 +542,9 @@ app.put("/api/products/:id", async (req, res) => {
       weight: Number(req.body.weight ?? oldProduct.weight),
       minStock: Number(req.body.minStock ?? oldProduct.minStock),
     };
+    if (updatedProduct.discount === undefined || isNaN(updatedProduct.discount) || !isFinite(updatedProduct.discount)) {
+      updatedProduct.discount = 0;
+    }
 
     await setDoc(productRef, updatedProduct);
 

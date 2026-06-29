@@ -881,7 +881,7 @@ export default function App() {
       const createdItem = {
         ...productData,
         id: "prod-" + Date.now(),
-        discount: productData.promoPrice ? Math.round(((productData.price - productData.promoPrice) / productData.price) * 100) : 0
+        discount: (productData.price && productData.price > 0 && productData.promoPrice) ? Math.round(((productData.price - productData.promoPrice) / productData.price) * 100) : 0
       };
       const next = [...products, createdItem];
       setProducts(next);
@@ -901,7 +901,7 @@ export default function App() {
           weight: Number(productData.weight || 0),
           minStock: Number(productData.minStock || 5),
           isActive: typeof productData.isActive === "boolean" ? productData.isActive : true,
-          discount: productData.promoPrice ? Math.round(((productData.price - productData.promoPrice) / productData.price) * 100) : 0
+          discount: (productData.price && productData.price > 0 && productData.promoPrice) ? Math.round(((productData.price - productData.promoPrice) / productData.price) * 100) : 0
         };
         await saveProductClient(newProduct);
         
@@ -938,7 +938,7 @@ export default function App() {
       const next = products.map(p => {
         if (p.id === prodId) {
           const merged = { ...p, ...updates };
-          merged.discount = merged.promoPrice ? Math.round(((merged.price - merged.promoPrice) / merged.price) * 100) : 0;
+          merged.discount = (merged.price && merged.price > 0 && merged.promoPrice) ? Math.round(((merged.price - merged.promoPrice) / merged.price) * 100) : 0;
           return merged;
         }
         return p;
@@ -962,7 +962,7 @@ export default function App() {
             weight: Number(updates.weight ?? oldProduct.weight),
             minStock: Number(updates.minStock ?? oldProduct.minStock),
           };
-          merged.discount = merged.promoPrice ? Math.round(((merged.price - merged.promoPrice) / merged.price) * 100) : 0;
+          merged.discount = (merged.price && merged.price > 0 && merged.promoPrice) ? Math.round(((merged.price - merged.promoPrice) / merged.price) * 100) : 0;
           await saveProductClient(merged);
 
           const stockDiff = merged.stock - oldProduct.stock;
