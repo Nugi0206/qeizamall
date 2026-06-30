@@ -104,8 +104,15 @@ export default function ProductCard({ product, onViewDetail, onBuyImmediate }: P
           
           {/* Crisp Price tags - tight format */}
           <div className="mt-1.5 space-y-0.5">
-            <div className="text-[15px] font-black text-[#212121] leading-none">
-              {formatIDR(displayPrice).replace(/\s/g, "")}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[15px] font-black text-[#212121] leading-none">
+                {formatIDR(displayPrice).replace(/\s/g, "")}
+              </span>
+              {hasDiscount && (
+                <span className="text-[11px] text-gray-400 line-through leading-none font-normal">
+                  {formatIDR(originalPrice).replace(/\s/g, "")}
+                </span>
+              )}
             </div>
             
             {/* Promo cashback indicator beneath price (e.g. Hemat s.d 15% Pakai Bonus) */}

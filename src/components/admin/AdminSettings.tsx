@@ -418,7 +418,7 @@ export default function AdminSettings({ settings, onUpdateSettings, products = [
               />
               <span className="text-2xl mb-1 mt-1">📁</span>
               <span className="text-xs font-bold text-gray-700">Pilih berkas gambar banner Anda</span>
-              <span className="text-[10px] text-gray-400 mt-1">Mendukung file PNG, JPG, JPEG, WEBP. Maksimal 3MB.</span>
+              <span className="text-[10px] text-gray-400 mt-1">Mendukung file PNG, JPG, JPEG, WEBP. Maksimal 100MB.</span>
             </div>
           </div>
 

@@ -1,0 +1,12 @@
+{
+  "firestore": [
+    {
+      "database": "(default)",
+      "rules": "firestore.rules"
+    },
+    {
+      "database": "ai-studio-qeizamall-7e1c4f66-9324-4055-a6a9-5429748c6171",
+      "rules": "firestore.rules"
+    }
+  ]
+}

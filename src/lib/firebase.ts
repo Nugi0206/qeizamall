@@ -10,100 +10,224 @@ import {
   query,
   orderBy
 } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 import { Product, Order, Settings, Promo, StockLog, BlogPost } from "../types";
 import firebaseConfig from "../../firebase-applet-config.json";
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+const auth = getAuth(app);
+
+export enum OperationType {
+  CREATE = "create",
+  UPDATE = "update",
+  DELETE = "delete",
+  LIST = "list",
+  GET = "get",
+  WRITE = "write",
+}
+
+export interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  };
+}
+
+export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid || null,
+      email: auth.currentUser?.email || null,
+      emailVerified: auth.currentUser?.emailVerified || null,
+      isAnonymous: auth.currentUser?.isAnonymous || null,
+      tenantId: auth.currentUser?.tenantId || null,
+      providerInfo: auth.currentUser?.providerData?.map(provider => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || []
+    },
+    operationType,
+    path
+  };
+  console.error("Firestore Error: ", JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
 
 // 1. Products
 export async function fetchProductsClient(): Promise<Product[]> {
-  const querySnapshot = await getDocs(collection(db, "products"));
-  const products: Product[] = [];
-  querySnapshot.forEach((doc) => {
-    products.push(doc.data() as Product);
-  });
-  return products;
+  const path = "products";
+  try {
+    const querySnapshot = await getDocs(collection(db, path));
+    const products: Product[] = [];
+    querySnapshot.forEach((doc) => {
+      products.push(doc.data() as Product);
+    });
+    return products;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, path);
+    return []; // fallback but unreachable since handleFirestoreError throws
+  }
 }
 
 export async function saveProductClient(product: Product): Promise<void> {
-  await setDoc(doc(db, "products", product.id), product);
+  const path = `products/${product.id}`;
+  try {
+    await setDoc(doc(db, "products", product.id), product);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
 }
 
 export async function deleteProductClient(id: string): Promise<void> {
-  await deleteDoc(doc(db, "products", id));
+  const path = `products/${id}`;
+  try {
+    await deleteDoc(doc(db, "products", id));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, path);
+  }
 }
 
 // 2. Orders
 export async function fetchOrdersClient(): Promise<Order[]> {
-  const querySnapshot = await getDocs(collection(db, "orders"));
-  const orders: Order[] = [];
-  querySnapshot.forEach((doc) => {
-    orders.push(doc.data() as Order);
-  });
-  // Sort by invoice or date descending if possible
-  return orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const path = "orders";
+  try {
+    const querySnapshot = await getDocs(collection(db, path));
+    const orders: Order[] = [];
+    querySnapshot.forEach((doc) => {
+      orders.push(doc.data() as Order);
+    });
+    return orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, path);
+    return [];
+  }
 }
 
 export async function saveOrderClient(order: Order): Promise<void> {
-  await setDoc(doc(db, "orders", order.id), order);
+  const path = `orders/${order.id}`;
+  try {
+    await setDoc(doc(db, "orders", order.id), order);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
 }
 
 export async function deleteOrderClient(id: string): Promise<void> {
-  await deleteDoc(doc(db, "orders", id));
+  const path = `orders/${id}`;
+  try {
+    await deleteDoc(doc(db, "orders", id));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, path);
+  }
 }
 
 // 3. Promos
 export async function fetchPromosClient(): Promise<Promo[]> {
-  const querySnapshot = await getDocs(collection(db, "promos"));
-  const promos: Promo[] = [];
-  querySnapshot.forEach((doc) => {
-    promos.push(doc.data() as Promo);
-  });
-  return promos;
+  const path = "promos";
+  try {
+    const querySnapshot = await getDocs(collection(db, path));
+    const promos: Promo[] = [];
+    querySnapshot.forEach((doc) => {
+      promos.push(doc.data() as Promo);
+    });
+    return promos;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, path);
+    return [];
+  }
 }
 
 export async function savePromoClient(promo: Promo): Promise<void> {
-  await setDoc(doc(db, "promos", promo.id), promo);
+  const path = `promos/${promo.id}`;
+  try {
+    await setDoc(doc(db, "promos", promo.id), promo);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
 }
 
 export async function deletePromoClient(id: string): Promise<void> {
-  await deleteDoc(doc(db, "promos", id));
+  const path = `promos/${id}`;
+  try {
+    await deleteDoc(doc(db, "promos", id));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, path);
+  }
 }
 
 // 4. Settings
 export async function fetchSettingsClient(): Promise<Settings | null> {
-  const docSnap = await getDoc(doc(db, "settings", "global"));
-  if (docSnap.exists()) {
-    return docSnap.data() as Settings;
+  const path = "settings/global";
+  try {
+    const docSnap = await getDoc(doc(db, "settings", "global"));
+    if (docSnap.exists()) {
+      return docSnap.data() as Settings;
+    }
+    return null;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, path);
+    return null;
   }
-  return null;
 }
 
 export async function saveSettingsClient(settings: Settings): Promise<void> {
-  await setDoc(doc(db, "settings", "global"), settings);
+  const path = "settings/global";
+  try {
+    await setDoc(doc(db, "settings", "global"), settings);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
 }
 
 // 5. Stock Logs
 export async function fetchStockLogsClient(): Promise<StockLog[]> {
-  const querySnapshot = await getDocs(collection(db, "stockLogs"));
-  const logs: StockLog[] = [];
-  querySnapshot.forEach((doc) => {
-    logs.push(doc.data() as StockLog);
-  });
-  return logs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const path = "stockLogs";
+  try {
+    const querySnapshot = await getDocs(collection(db, path));
+    const logs: StockLog[] = [];
+    querySnapshot.forEach((doc) => {
+      logs.push(doc.data() as StockLog);
+    });
+    return logs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, path);
+    return [];
+  }
 }
 
 export async function saveStockLogClient(log: StockLog): Promise<void> {
-  await setDoc(doc(db, "stockLogs", log.id), log);
+  const path = `stockLogs/${log.id}`;
+  try {
+    await setDoc(doc(db, "stockLogs", log.id), log);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
 }
 
 // 6. Blog Posts
 export async function fetchBlogPostsClient(): Promise<BlogPost[]> {
-  const querySnapshot = await getDocs(collection(db, "blogPosts"));
-  const posts: BlogPost[] = [];
-  querySnapshot.forEach((doc) => {
-    posts.push(doc.data() as BlogPost);
-  });
-  return posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const path = "blogPosts";
+  try {
+    const querySnapshot = await getDocs(collection(db, path));
+    const posts: BlogPost[] = [];
+    querySnapshot.forEach((doc) => {
+      posts.push(doc.data() as BlogPost);
+    });
+    return posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, path);
+    return [];
+  }
 }

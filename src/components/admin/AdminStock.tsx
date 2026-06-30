@@ -797,7 +797,7 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
                     <span className="text-xs font-bold text-gray-500 block">Pilih File Foto (.png, .jpg, .jpeg)</span>
-                    <span className="text-[10px] text-gray-400 mt-1 block">Seret & lepas atau klik untuk mencari berkas</span>
+                    <span className="text-[10px] text-gray-400 mt-1 block">Maksimal total ukuran file 100MB. Seret & lepas atau klik untuk mencari berkas.</span>
                   </div>
                   
                   {/* Loaded images thumbnails */}
@@ -841,7 +841,7 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
                     <span className="text-xs font-bold text-gray-500 block">Pilih File Video (.mp4, .mov, .webm)</span>
-                    <span className="text-[10px] text-gray-400 mt-1 block">Maksimal resolusi 1080p, durasi singkat</span>
+                    <span className="text-[10px] text-gray-400 mt-1 block">Maksimal ukuran file 100MB, resolusi 1080p</span>
                   </div>
                   
                   {/* Loaded Video Indicator */}
