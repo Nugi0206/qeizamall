@@ -289,12 +289,24 @@ export default function App() {
       setIsOfflineMode(true);
       setIsDirectFirestore(false);
 
-      // Load products
-      const savedProducts = localStorage.getItem("qeiza_fallback_products");
-      if (savedProducts) {
-        try { setProducts(JSON.parse(savedProducts)); } catch { localStorage.removeItem("qeiza_fallback_products"); }
-      }
-      if (!savedProducts || !localStorage.getItem("qeiza_fallback_products")) {
+      try {
+        // Safe localStorage parsing helper
+        const safeGetLocalStorage = (key: string, defaultVal: any) => {
+          try {
+            const raw = localStorage.getItem(key);
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (parsed !== null && parsed !== undefined) {
+                return parsed;
+              }
+            }
+          } catch (e) {
+            console.warn(`Failed to read/parse localStorage key ${key}:`, e);
+          }
+          return defaultVal;
+        };
+
+        // Load products
         const defaultProds = [
           {
             id: "prod-1",
@@ -347,16 +359,11 @@ export default function App() {
             adVideoUrl: null
           }
         ];
-        setProducts(defaultProds);
-        localStorage.setItem("qeiza_fallback_products", JSON.stringify(defaultProds));
-      }
+        const loadedProducts = safeGetLocalStorage("qeiza_fallback_products", defaultProds);
+        setProducts(loadedProducts);
+        try { localStorage.setItem("qeiza_fallback_products", JSON.stringify(loadedProducts)); } catch {}
 
-      // Load settings
-      const savedSettings = localStorage.getItem("qeiza_fallback_settings");
-      if (savedSettings) {
-        try { setSettings(JSON.parse(savedSettings)); } catch { localStorage.removeItem("qeiza_fallback_settings"); }
-      }
-      if (!savedSettings || !localStorage.getItem("qeiza_fallback_settings")) {
+        // Load settings
         const defaultSettings = {
           logoUrl: "",
           heroBanners: [
@@ -400,16 +407,11 @@ export default function App() {
           bannerCtaText: "JELAJAHI PRODUK",
           bannerImageUrl: ""
         };
-        setSettings(defaultSettings);
-        localStorage.setItem("qeiza_fallback_settings", JSON.stringify(defaultSettings));
-      }
+        const loadedSettings = safeGetLocalStorage("qeiza_fallback_settings", defaultSettings);
+        setSettings(loadedSettings);
+        try { localStorage.setItem("qeiza_fallback_settings", JSON.stringify(loadedSettings)); } catch {}
 
-      // Load orders
-      const savedOrders = localStorage.getItem("qeiza_fallback_orders");
-      if (savedOrders) {
-        try { setOrders(JSON.parse(savedOrders)); } catch { localStorage.removeItem("qeiza_fallback_orders"); }
-      }
-      if (!savedOrders || !localStorage.getItem("qeiza_fallback_orders")) {
+        // Load orders
         const defaultOrders = [
           {
             id: "ord-1",
@@ -453,16 +455,11 @@ export default function App() {
             voucherCode: null
           }
         ];
-        setOrders(defaultOrders);
-        localStorage.setItem("qeiza_fallback_orders", JSON.stringify(defaultOrders));
-      }
+        const loadedOrders = safeGetLocalStorage("qeiza_fallback_orders", defaultOrders);
+        setOrders(loadedOrders);
+        try { localStorage.setItem("qeiza_fallback_orders", JSON.stringify(loadedOrders)); } catch {}
 
-      // Load promos
-      const savedPromos = localStorage.getItem("qeiza_fallback_promos");
-      if (savedPromos) {
-        try { setPromos(JSON.parse(savedPromos)); } catch { localStorage.removeItem("qeiza_fallback_promos"); }
-      }
-      if (!savedPromos || !localStorage.getItem("qeiza_fallback_promos")) {
+        // Load promos
         const defaultPromos = [
           {
             id: "prm-1",
@@ -474,24 +471,51 @@ export default function App() {
             description: "Diskon 10% dengan minimal transaksi Rp 150.000"
           }
         ];
-        setPromos(defaultPromos);
-        localStorage.setItem("qeiza_fallback_promos", JSON.stringify(defaultPromos));
+        const loadedPromos = safeGetLocalStorage("qeiza_fallback_promos", defaultPromos);
+        setPromos(loadedPromos);
+        try { localStorage.setItem("qeiza_fallback_promos", JSON.stringify(loadedPromos)); } catch {}
+
+        // Load blog posts
+        setBlogPosts([
+          {
+            id: "blog-1",
+            title: "Cara Memilih Ukuran Pakaian Online yang Pas",
+            content: "Pastikan Anda mengukur lingkar dada dan panjang baju secara seksama sebelum checkout.",
+            imageUrl: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80",
+            slug: "pilih-ukuran-pakaian-online",
+            createdAt: "2026-06-22T12:00:00.000Z"
+          }
+        ]);
+
+        // Load stock logs
+        setStockLogs([]);
+
+      } catch (fallbackErr) {
+        console.error("Critical: Fallback local storage parsing failed too.", fallbackErr);
+        // Absolute safety net to prevent permanent loading spinner
+        setProducts([]);
+        setOrders([]);
+        setPromos([]);
+        setBlogPosts([]);
+        setStockLogs([]);
+        setSettings({
+          logoUrl: "",
+          heroBanners: [],
+          aboutText: "Qeiza Mall",
+          warehouseAddress: { street: "", kelurahan: "", kecamatan: "", kabupaten: "", provinsi: "", postalCode: "" },
+          activeCouriers: [],
+          activePayments: { cod: true, transferBank: { isActive: false, accounts: [] }, qris: { isActive: false, qrisUrl: "" } },
+          seoTitle: "Qeiza Mall",
+          seoDescription: "Qeiza Mall",
+          contactPhone: "",
+          contactEmail: "",
+          bannerBadge: "",
+          bannerTitle: "Qeiza Mall",
+          bannerDescription: "",
+          bannerCtaText: "",
+          bannerImageUrl: ""
+        });
       }
-
-      // Load blog posts
-      setBlogPosts([
-        {
-          id: "blog-1",
-          title: "Cara Memilih Ukuran Pakaian Online yang Pas",
-          content: "Pastikan Anda mengukur lingkar dada dan panjang baju secara seksama sebelum checkout.",
-          imageUrl: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=800&q=80",
-          slug: "pilih-ukuran-pakaian-online",
-          createdAt: "2026-06-22T12:00:00.000Z"
-        }
-      ]);
-
-      // Load stock logs
-      setStockLogs([]);
 
     } finally {
       setLoading(false);
