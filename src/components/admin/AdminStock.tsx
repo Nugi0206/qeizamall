@@ -7,6 +7,48 @@ import React, { useState } from "react";
 import { Product, StockLog } from "../../types";
 import { Search, Plus, Trash2, Edit2, AlertTriangle, ArrowUpRight, ArrowDownRight, ClipboardList, CheckCircle, X } from "lucide-react";
 
+const compressImage = (file: File, callback: (result: string) => void) => {
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      let width = img.width;
+      let height = img.height;
+
+      // Set max dimension to 1000px for web display
+      const MAX_WIDTH = 1000;
+      const MAX_HEIGHT = 1000;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width = Math.round((width * MAX_HEIGHT) / height);
+          height = MAX_HEIGHT;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, width, height);
+        // Export to highly compressed JPEG with 0.75 quality (greatly reduces file size)
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
+        callback(dataUrl);
+      } else {
+        callback(event.target?.result as string);
+      }
+    };
+    img.src = event.target?.result as string;
+  };
+  reader.readAsDataURL(file);
+};
+
 interface AdminStockProps {
   products: Product[];
   stockLogs: StockLog[];
@@ -158,6 +200,17 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
       return;
     }
 
+    // Filter out stale/inactive variant prices based on active combinations
+    const activeVariants = getActiveVariantsList();
+    const cleanedVariantPrices: Record<string, any> = {};
+    if (variantPrices) {
+      Object.entries(variantPrices).forEach(([k, v]) => {
+        if (activeVariants.includes(k)) {
+          cleanedVariantPrices[k] = v;
+        }
+      });
+    }
+
     const payload = {
       name,
       sku,
@@ -182,7 +235,7 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
       isMall,
       shippingCity: shippingCity.trim() || "Jakarta Pusat",
       colorImages,
-      variantPrices
+      variantPrices: cleanedVariantPrices
     };
 
     if (isCreating) {
@@ -784,13 +837,9 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
                         const files = e.target.files;
                         if (files) {
                           Array.from(files).forEach((file: any) => {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              if (typeof reader.result === "string") {
-                                setImages((prev) => [...prev, reader.result]);
-                              }
-                            };
-                            reader.readAsDataURL(file);
+                            compressImage(file, (compressedBase64) => {
+                              setImages((prev) => [...prev, compressedBase64]);
+                            });
                           });
                         }
                       }}
@@ -890,13 +939,9 @@ export default function AdminStock({ products, stockLogs, onAddProduct, onUpdate
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => {
-                                if (typeof reader.result === "string") {
-                                  setTempColorImage(reader.result);
-                                }
-                              };
-                              reader.readAsDataURL(file);
+                              compressImage(file, (compressedBase64) => {
+                                setTempColorImage(compressedBase64);
+                              });
                             }
                           }}
                           className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"

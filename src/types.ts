@@ -166,8 +166,42 @@ export function getProductCheapestPrice(product: Product): { displayPrice: numbe
     { price: product.price, promoPrice: product.promoPrice }
   ];
   if (product.variantPrices) {
-    Object.values(product.variantPrices).forEach((v) => {
-      prices.push({ price: v.price, promoPrice: v.promoPrice });
+    const activeColors = (product.colors || []).filter(c => c && c.trim() !== "");
+    const activeSizes = (product.sizes || []).filter(s => s && s.trim() !== "");
+    const activeVariants: string[] = [];
+
+    if (activeColors.length > 0 && activeSizes.length > 0) {
+      activeColors.forEach(c => {
+        activeSizes.forEach(s => {
+          const cTrim = c.trim();
+          const sTrim = s.trim();
+          if (cTrim === "Kombinasi" && sTrim === "All Size") {
+            // skip
+          } else if (cTrim === "Kombinasi") {
+            activeVariants.push(sTrim);
+          } else if (sTrim === "All Size") {
+            activeVariants.push(cTrim);
+          } else {
+            activeVariants.push(`${cTrim}-${sTrim}`);
+          }
+        });
+      });
+    } else if (activeColors.length > 0) {
+      activeColors.forEach(c => {
+        const cTrim = c.trim();
+        if (cTrim !== "Kombinasi") activeVariants.push(cTrim);
+      });
+    } else if (activeSizes.length > 0) {
+      activeSizes.forEach(s => {
+        const sTrim = s.trim();
+        if (sTrim !== "All Size") activeVariants.push(sTrim);
+      });
+    }
+
+    Object.entries(product.variantPrices).forEach(([key, v]) => {
+      if (activeVariants.includes(key)) {
+        prices.push({ price: v.price, promoPrice: v.promoPrice });
+      }
     });
   }
 
